@@ -14,6 +14,23 @@
       </div>
       <div v-if="error" class="text-negative q-mt-md">{{ error }}</div>
 
+      <div v-if="recentDocs.length" class="q-mt-lg q-pa-md bg-grey-2 rounded-borders"
+        style="width:100%;max-width:600px;">
+        <div class="row items-center q-mb-md">
+          <div class="text-h6">Recently Notarized This Session</div>
+          <q-space />
+          <q-btn flat dense icon="delete" color="negative" @click="clearRecentDocs" label="Clear" />
+        </div>
+        <q-list bordered>
+          <q-item v-for="doc in recentDocs" :key="doc.hash">
+            <q-item-section>
+              <div><b>{{ doc.name }}</b></div>
+              <div class="text-caption">{{ doc.hash }}</div>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
+
       <q-separator class="q-my-lg" />
 
       <div class="q-mb-md"><b>Verify Document</b></div>
@@ -34,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useWallet } from 'src/composables/useWallet';
 
 const { account, notaryContract, connectWallet } = useWallet();
@@ -43,6 +60,9 @@ const fileHash = ref<string | null>(null);
 const txHash = ref<string | null>(null);
 const error = ref<string | null>(null);
 const isRecording = ref(false);
+
+const RECENT_DOCS_KEY = 'recentNotarizedDocs';
+const recentDocs = ref<{ name: string; hash: string }[]>([]);
 
 const verifyFileHash = ref<string | null>(null);
 const verifyResult = ref<number | null>(null);
@@ -55,10 +75,31 @@ const txExplorerUrl = computed(() =>
     : ''
 );
 
+let lastFileName: string | null = null;
+
+onMounted(() => {
+  const saved = localStorage.getItem(RECENT_DOCS_KEY);
+  if (saved) {
+    try {
+      recentDocs.value = JSON.parse(saved);
+    } catch { }
+  }
+});
+
+watch(recentDocs, (val) => {
+  localStorage.setItem(RECENT_DOCS_KEY, JSON.stringify(val));
+}, { deep: true });
+
+function clearRecentDocs() {
+  recentDocs.value = [];
+  localStorage.removeItem(RECENT_DOCS_KEY);
+}
+
 function onFileChange(event: Event) {
   const input = event.target as HTMLInputElement;
   if (input.files && input.files[0]) {
     const file = input.files[0];
+    lastFileName = file.name;
     const reader = new FileReader();
     reader.onload = async (e) => {
       const arrayBuffer = e.target?.result as ArrayBuffer;
@@ -98,6 +139,12 @@ async function recordHash() {
     const tx = await notaryContract.value.recordDocument(hashBytes32);
     const receipt = await tx.wait();
     txHash.value = receipt.hash;
+    // Add to recentDocs
+    if (lastFileName && fileHash.value) {
+      recentDocs.value.unshift({ name: lastFileName, hash: fileHash.value });
+      // Limit to 5 recent docs
+      if (recentDocs.value.length > 5) recentDocs.value.pop();
+    }
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Transaction failed';
   } finally {
