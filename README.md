@@ -42,33 +42,84 @@ Built with **Vue 3 + Quasar**, it delivers a seamless, high-performance user exp
 | Layer          | Technologies                                                                                 |
 | -------------- | -------------------------------------------------------------------------------------------- |
 | **Frontend**   | Vue 3, [Quasar Framework](https://quasar.dev/), TypeScript, Vite, Pinia, ethers.js, vue-dapp |
-| **AI Layer**   | FastAPI (Python), OpenAI API, Tesseract.js (OCR), LangChain, optional: Pinecone              |
-| **Blockchain** | Solidity, Hardhat, Polygon Mumbai testnet, MetaMask, web3.js/ethers.js                       |
-| **Storage**    | IPFS via web3.storage or nft.storage                                                         |
-| **DevOps**     | Docker, GitHub Actions, Git, CI/CD, VS Code                                                  |
+| **Backend**    | Node.js, Express.js, Tesseract.js (OCR), OpenAI API, dotenv, Multer, web3.storage SDK        |
+| **Blockchain** | Solidity, Hardhat, Polygon Mumbai testnet, MetaMask, ethers.js                               |
+| **Storage**    | IPFS via [web3.storage](https://web3.storage/)                                               |
+| **AI Layer**   | OpenAI GPT (via API), optional: Hugging Face Transformers (for future integration)           |
+| **DevOps**     | Docker, Docker Compose, GitHub Actions (CI/CD), CapRover or Coolify (PaaS), VS Code          |
 
 ---
 
 ## 📁 Project Structure
 
+bash
 notarai/
-├── frontend/ # Vue 3 + Quasar app
-│ ├── components/
-│ ├── views/
-│ ├── contracts/ # ABI and addresses
-│ ├── composables/
-│ └── ...
-├── backend/ # FastAPI backend (AI / OCR / IPFS APIs)
-│ ├── app/
-│ │ ├── ai/
-│ │ ├── ipfs/
-│ │ ├── ocr/
-│ │ └── main.py
-├── contracts/ # Solidity smart contracts with Hardhat
+├── frontend/ # Quasar (Vue 3) frontend
+│ ├── src/
+│ │ ├── components/
+│ │ ├── pages/
+│ │ ├── composables/
+│ │ ├── services/ # JS modules calling backend
+│ │ ├── contracts/ # ABI files
+│ │ ├── css/
+│ │ │ └── quasar.variables.scss
+│ │ └── boot/ # Boot files (e.g., wallet, axios)
+│ ├── public/
+│ └── quasar.config.js
+
+├── backend/ # Node.js Express backend
+│ ├── routes/
+│ │ ├── ai.js # POST /ai/summarize
+│ │ ├── ipfs.js # POST /ipfs/upload
+│ │ ├── ocr.js # POST /ocr/extract
+│ │ └── hash.js # POST /hash/document
+│ ├── services/
+│ │ ├── openaiService.js # Talks to OpenAI/Claude
+│ │ ├── ipfsService.js # Upload to IPFS (web3.storage)
+│ │ ├── ocrService.js # Tesseract integration
+│ │ └── cryptoUtils.js # Hashing functions (SHA-256)
+│ ├── middleware/
+│ │ └── multer.js # File upload config
+│ ├── app.js # Express app entry point
+│ └── .env
+
+├── contracts/ # Hardhat project
 │ ├── contracts/
+│ │ └── Notary.sol
 │ ├── scripts/
+│ │ └── deploy.js
 │ ├── test/
 │ └── hardhat.config.js
+
+├── docker/ # Docker + DevOps
+│ ├── docker-compose.yml
+│ ├── frontend.Dockerfile
+│ ├── backend.Dockerfile
+│ └── .env.example
+
+├── .github/ # CI/CD config (GitHub Actions)
+│ └── workflows/
+│ └── deploy.yml
+
+├── README.md
+└── LICENSE
+
+---
+
+🌐 High-Level Architecture
+pgsql
+[Frontend: Vue 3 + Quasar]
+↳ Uploads document
+↳ Calls Express backend (OCR, AI, IPFS, Hash)
+↳ Gets metadata + hash
+↳ Signs with MetaMask (Ethers.js)
+↳ Sends signed hash to smart contract (Polygon)
+
+[Backend: Node.js + Express]
+↳ OCR with Tesseract.js
+↳ Metadata extraction with OpenAI
+↳ IPFS file upload via web3.storage
+↳ SHA-256 hashing and verification
 
 ---
 
@@ -89,11 +140,14 @@ notarai/
 
 ### Prerequisites
 
-- Node.js 18+
-- Python 3.10+
-- MetaMask installed in your browser
-- OpenAI API Key (or Hugging Face alternative)
-- Mumbai testnet wallet (use [Polygon Faucet](https://mumbaifaucet.com/))
+- **Node.js 18+**
+- **npm** or **pnpm** (recommended for workspace monorepo)
+- **MetaMask** installed in your browser
+- **OpenAI API Key** (or Claude/Hugging Face alternative)
+- **web3.storage API Token** (for IPFS upload)
+- **Polygon Mumbai Testnet Wallet**
+  - Get test MATIC: [Polygon Faucet](https://mumbaifaucet.com/)
+- (Optional) **CapRover or Coolify** for easy deployment
 
 ---
 
@@ -101,17 +155,19 @@ notarai/
 
 #### 1. Frontend
 
-```bash
+bash
 cd frontend
 npm install
 quasar dev
 
 #### 2. Backend
+
 cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+npm install
+npm run dev
 
 #### 3. Smart Contracts
+
 cd contracts
 npm install
 npx hardhat compile
@@ -122,6 +178,8 @@ npx hardhat run scripts/deploy.js --network mumbai
 API keys (OpenAI, web3.storage)
 RPC provider (e.g. Alchemy or Infura for Mumbai)
 Contract addresses
+
+---
 
 🔮 Roadmap
 AI-driven document summary
@@ -134,12 +192,15 @@ DAO voting for notarization
 zkProof verification (privacy layer)
 Mobile and Desktop builds
 
+---
+
 📷 UI Preview (Coming Soon)
 Upload view with real-time document preview
 AI output card with summary + metadata
 Wallet connect + transaction success UI
 Proof explorer with hash + block details
-```
+
+---
 
 🧪 Testing
 To run smart contract tests:
@@ -152,6 +213,8 @@ cd frontend
 npm run test
 Backend API can be tested via Postman or Swagger docs (autogenerated by FastAPI).
 
+---
+
 🙌 Acknowledgements
 Thanks to:
 OpenAI
@@ -161,3 +224,5 @@ web3.storage
 Quasar Framework
 MetaMask
 Tesseract.js
+
+---
