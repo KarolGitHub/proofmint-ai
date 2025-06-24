@@ -1,8 +1,8 @@
 {
-  "name": "notar-ai",
+  "name": "proofmint-ai",
   "version": "0.0.1",
   "description": "AI-Powered Decentralized Document Verification",
-  "productName": "notar-ai",
+  "productName": "proofmint-ai",
   "author": "kgardyjas <karol.gardyjas@zetorzeszow.pl>",
   "type": "module",
   "private": true,

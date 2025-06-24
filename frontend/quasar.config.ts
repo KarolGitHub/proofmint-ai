@@ -79,15 +79,8 @@ export default defineConfig((/* ctx */) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
     devServer: {
-      /* proxy: {
-        '/api': {
-          target: process.env.API_URL || 'http://localhost:3001',
-          changeOrigin: true,
-          pathRewrite: { '^/api': '' },
-        },
-      }, */
       port: 3000,
-      // open: true, // opens browser window automatically
+      open: true,
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
@@ -201,7 +194,7 @@ export default defineConfig((/* ctx */) => {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: 'notar-ai',
+        appId: 'proofmint-ai',
       },
     },
 

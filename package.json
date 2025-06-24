@@ -1,5 +1,5 @@
 {
-  "name": "notar-ai",
+  "name": "proofmint-ai",
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",

@@ -5,7 +5,7 @@
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title>
-          NotarAI
+          ProofMintAI
         </q-toolbar-title>
 
         <q-space />
@@ -48,7 +48,7 @@ import { ref, getCurrentInstance, onMounted } from 'vue';
 const leftDrawerOpen = ref(false);
 const { proxy } = getCurrentInstance()!;
 
-const DARK_KEY = 'notarai_dark_mode';
+const DARK_KEY = 'proofmintai_dark_mode';
 
 onMounted(() => {
   // On first load, set dark mode based on system preference if not set

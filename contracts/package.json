@@ -1,7 +1,7 @@
 {
-  "name": "notarai-contracts",
+  "name": "proofmintai-contracts",
   "version": "1.0.0",
-  "description": "Smart contracts for NotarAI",
+  "description": "Smart contracts for ProofMintAI",
   "scripts": {
     "test": "hardhat test",
     "compile": "hardhat compile",

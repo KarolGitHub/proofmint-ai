@@ -1,6 +1,6 @@
-# 🔐 NotarAI – AI‑Powered + Crypto‑Enhanced Decentralized Document Verification
+# 🔐 ProofMintAI – AI‑Powered + Crypto‑Enhanced Decentralized Document Verification
 
-**NotarAI** is a modern Web3 application that combines **Artificial Intelligence (AI)**, **Blockchain**, and **Cryptocurrency mechanics** to analyze, validate, notarize, and optionally monetize documents in a fully decentralized and tamper-proof way.
+**ProofMintAI** is a modern Web3 application that combines **Artificial Intelligence (AI)**, **Blockchain**, and **Cryptocurrency mechanics** to analyze, validate, notarize, and optionally monetize documents in a fully decentralized and tamper-proof way.
 
 Built with **Vue 3 + Quasar**, you’ll experience high-performance UI combined with smart contracts, IPFS, AI, and token-driven flows—all designed for next-gen trustless document workflows.
 
@@ -52,76 +52,66 @@ Built with **Vue 3 + Quasar**, you’ll experience high-performance UI combined 
 
 ## 📁 Project Structure
 
-bash
-notarai/
+```bash
+proofmintai/
 ├── frontend/ # Quasar (Vue 3) frontend
-│ ├── src/
-│ │ ├── components/
-│ │ ├── pages/
-│ │ ├── composables/
-│ │ ├── services/ # JS modules calling backend
-│ │ ├── contracts/ # ABI files
-│ │ ├── css/
-│ │ │ └── quasar.variables.scss
-│ │ └── boot/ # Boot files (e.g., wallet, axios)
-│ ├── public/
-│ └── quasar.config.js
-
-├── backend/ # Node.js Express backend
+│ ├── src/components/
+│ ├── src/pages/
+│ ├── src/composables/
+│ ├── src/services/ # backend API calls
+│ ├── src/contracts/ # ABI + payment token contracts
+│ ├── src/css/quasar.variables.scss
+│ └── src/boot/ # wallet, axios, token logic
+├── backend/ # Node.js API backend
 │ ├── routes/
-│ │ ├── ai.js # POST /ai/summarize
-│ │ ├── ipfs.js # POST /ipfs/upload
-│ │ ├── ocr.js # POST /ocr/extract
-│ │ └── hash.js # POST /hash/document
+│ │ ├── ai.js # /ai/summarize
+│ │ ├── ipfs.js # /ipfs/upload
+│ │ ├── ocr.js # /ocr/extract
+│ │ ├── hash.js # /hash/document
+│ │ ├── payment.js # /payment/init & webhook
+│ │ └── escrow.js # /escrow/create/release
 │ ├── services/
-│ │ ├── openaiService.js # Talks to OpenAI/Claude
-│ │ ├── ipfsService.js # Upload to IPFS (web3.storage)
-│ │ ├── ocrService.js # Tesseract integration
-│ │ └── cryptoUtils.js # Hashing functions (SHA-256)
-│ ├── middleware/
-│ │ └── multer.js # File upload config
-│ ├── app.js # Express app entry point
-│ └── .env
-
-├── contracts/ # Hardhat project
-│ ├── contracts/
-│ │ └── Notary.sol
-│ ├── scripts/
-│ │ └── deploy.js
+│ │ ├── openaiService.js
+│ │ ├── ipfsService.js
+│ │ ├── ocrService.js
+│ │ ├── cryptoUtils.js # hashing
+│ │ └── paymentService.js # token & escrow logic
+│ └── app.js
+├── contracts/ # Solidity + Hardhat
+│ ├── Notary.sol
+│ ├── PaymentEscrow.sol
+│ ├── ReceiptNFT.sol
+│ ├── scripts/deploy.js
 │ ├── test/
 │ └── hardhat.config.js
-
-├── docker/ # Docker + DevOps
+├── docker/
 │ ├── docker-compose.yml
 │ ├── frontend.Dockerfile
 │ ├── backend.Dockerfile
 │ └── .env.example
-
-├── .github/ # CI/CD config (GitHub Actions)
-│ └── workflows/
-│ └── deploy.yml
-
+├── .github/
+│ └── workflows/deploy.yml
 ├── README.md
 └── LICENSE
+```
 
 ---
 
-🌐 High-Level Architecture
-pgsql
-[Frontend: Vue 3 + Quasar]
-↳ Uploads document
-↳ Calls Express backend (OCR, AI, IPFS, Hash)
-↳ Gets metadata + hash
-↳ Signs with MetaMask (Ethers.js)
-↳ Sends signed hash to smart contract (Polygon)
+## 🌐 High-Level Architecture
 
-[Backend: Node.js + Express]
-↳ OCR with Tesseract.js
-↳ Metadata extraction with OpenAI
-↳ IPFS file upload via web3.storage
-↳ SHA-256 hashing and verification
+[Frontend: Vue Quasar]
+↳ Files → POST to backend (OCR, AI, IPFS, hash)
+↳ User pays token via MetaMask → escrow or mint receipt NFT
+↳ Signed hash submitted to Notary contract
+↳ UI shows verification status + token receipt
 
----
+[Backend: Node.js]
+↳ OCR via Tesseract.js
+↳ AI summary via OpenAI
+↳ IPFS upload via web3.storage
+↳ Hashing (SHA‑256)
+↳ Payment/Escrow logic
+↳ Smart contract interaction (via ethers.js)
 
 ---
 
@@ -150,6 +140,8 @@ pgsql
 - web3.storage API Token
 - Polygon Mumbai testnet wallet (+ faucet MATIC)
 - (Optional) CapRover/Coolify for deployment
+
+---
 
 ### Setup Instructions
 

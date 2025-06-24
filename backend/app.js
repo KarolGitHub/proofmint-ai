@@ -23,10 +23,10 @@ app.use('/hash', hashRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
-  res.send('NotarAI Backend is running!');
+  res.send('ProofMintAI Backend is running!');
 });
 
-const PORT = process.env.BACKEND_PORT || 3000;
+const PORT = process.env.PORT || process.env.BACKEND_PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
