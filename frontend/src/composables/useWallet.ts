@@ -1,12 +1,12 @@
-import { ref } from 'vue';
+import { ref, shallowRef } from 'vue';
 import { ethers } from 'ethers';
 import NotaryABI from 'src/contracts/Notary.json';
 import { NOTARY_CONTRACT_ADDRESS } from 'src/contracts/address.js';
 
 const account = ref<string | null>(null);
-const provider = ref<ethers.providers.Web3Provider | null>(null);
-const signer = ref<ethers.Signer | null>(null);
-const notaryContract = ref<ethers.Contract | null>(null);
+const provider = shallowRef<ethers.providers.Web3Provider | null>(null);
+const signer = shallowRef<ethers.Signer | null>(null);
+const notaryContract = shallowRef<ethers.Contract | null>(null);
 
 export function useWallet() {
   // Connect to MetaMask
