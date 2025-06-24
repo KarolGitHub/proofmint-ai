@@ -12,14 +12,19 @@
 // to match your app's branding.
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
-$primary   : #1976D2;
-$secondary : #26A69A;
-$accent    : #9C27B0;
+// NotarAI custom color palette
+$primary: #3a86ff; // Bright blue – trust, clarity
+$secondary: #6c63ff; // Indigo – tech, creative
+$accent: #00dfa2; // Teal mint – modern, fresh
+$dark: #121212; // Dark mode background
+$dark-page: #1e1e1e; // Dark mode surface
+$positive: #10b981; // Success – notarized, verified
+$negative: #ef4444; // Error – invalid hash, fail
+$info: #6b7280; // Secondary info – metadata, notes
+$warning: #f59e0b; // Optional – caution, confirmations
 
-$dark      : #1D1D1D;
-$dark-page : #121212;
-
-$positive  : #21BA45;
-$negative  : #C10015;
-$info      : #31CCEC;
-$warning   : #F2C037;
+$grey-1: #f7f9fc; // Very light background
+$grey-2: #fafafa; // Surface / card background
+$text-dark: #1e1e1e; // Strong dark text
+$text-light: #f3f4f6; // Light text for dark mode
+$text-muted: #6b7280; // Soft secondary text
