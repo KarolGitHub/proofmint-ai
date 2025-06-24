@@ -1,0 +1,21 @@
+{
+  "name": "notarai-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for NotarAI",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy:amoy": "hardhat run scripts/deploy.js --network amoy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "hardhat": "^2.17.2"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3",
+    "dotenv": "^16.3.1"
+  }
+}
