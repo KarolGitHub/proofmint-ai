@@ -1,6 +1,8 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const Tesseract = require('tesseract.js');
+const pdfParse = require('pdf-parse');
 const router = express.Router();
 
 // Set up multer for file uploads (in-memory)
@@ -15,15 +17,20 @@ router.post('/extract', upload.single('file'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
-    // Placeholder: In a real app, call Tesseract.js or AI service here
-    // For now, just return file info and a fake result
-    const fakeResult = {
-      filename: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
-      text: 'This is a placeholder OCR/AI result. Replace with real extraction.',
-    };
-    res.json(fakeResult);
+    const { originalname, mimetype, buffer } = req.file;
+    let text = '';
+    if (mimetype === 'application/pdf') {
+      // Extract text from PDF
+      const data = await pdfParse(buffer);
+      text = data.text;
+    } else if (mimetype.startsWith('image/')) {
+      // Extract text from image using Tesseract.js
+      const { data } = await Tesseract.recognize(buffer, 'eng');
+      text = data.text;
+    } else {
+      return res.status(400).json({ message: 'Unsupported file type' });
+    }
+    res.json({ filename: originalname, size: req.file.size, mimetype, text });
   } catch (err) {
     res
       .status(500)
