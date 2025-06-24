@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import axios from 'axios';
+import { api } from 'boot/axios';
 
 const selectedFile = ref<File | null>(null);
 const isLoading = ref(false);
@@ -38,8 +38,7 @@ async function analyze() {
         try {
                 const formData = new FormData();
                 formData.append('file', selectedFile.value);
-                // Adjust the backend URL as needed
-                const { data } = await axios.post('/api/ocr/extract', formData, {
+                const { data } = await api.post('/ocr/extract', formData, {
                         headers: { 'Content-Type': 'multipart/form-data' },
                 });
                 result.value = typeof data === 'string' ? data : JSON.stringify(data, null, 2);

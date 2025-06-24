@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./backend
+    command: npm run dev
+    volumes:
+      - ./backend:/app
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=development
+      - BACKEND_PORT=3001
+    working_dir: /app
+
+  frontend:
+    build:
+      context: ./frontend
+    command: quasar dev -p 3000 -H 0.0.0.0
+    volumes:
+      - ./frontend:/app
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+    working_dir: /app
+    depends_on:
+      - backend
