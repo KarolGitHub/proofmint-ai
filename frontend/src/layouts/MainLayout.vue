@@ -7,6 +7,10 @@
         <q-toolbar-title>
           NotarAI
         </q-toolbar-title>
+
+        <q-space />
+        <q-btn flat round :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" @click="toggleDarkMode"
+          :aria-label="$q.dark.isActive ? 'Switch to light mode' : 'Switch to dark mode'" />
       </q-toolbar>
     </q-header>
 
@@ -39,11 +43,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, getCurrentInstance, onMounted } from 'vue';
 
 const leftDrawerOpen = ref(false);
+const { proxy } = getCurrentInstance()!;
+
+const DARK_KEY = 'notarai_dark_mode';
+
+onMounted(() => {
+  // On first load, set dark mode based on system preference if not set
+  const saved = localStorage.getItem(DARK_KEY);
+  if (saved === null) {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    proxy.$q.dark.set(prefersDark);
+    localStorage.setItem(DARK_KEY, prefersDark ? '1' : '0');
+  } else {
+    proxy.$q.dark.set(saved === '1');
+  }
+});
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
+}
+
+function toggleDarkMode() {
+  proxy.$q.dark.toggle();
+  localStorage.setItem(DARK_KEY, proxy.$q.dark.isActive ? '1' : '0');
 }
 </script>
