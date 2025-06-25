@@ -67,7 +67,7 @@
                                 <div v-if="result.message">{{ result.message }}</div>
                         </div>
                         <div v-else>
-                                <pre class="q-mt-sm" style="white-space:pre-wrap;word-break:break-word;">{{ result }}</pre>
+                        <pre class="q-mt-sm" style="white-space:pre-wrap;word-break:break-word;">{{ result }}</pre>
                         </div>
                 </div>
                 <div v-if="batchMode && batchResults.length" class="q-mt-md bg-grey-2 q-pa-md rounded-borders" style="max-width:900px;">

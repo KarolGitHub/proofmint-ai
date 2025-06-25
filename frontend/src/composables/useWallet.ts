@@ -1,7 +1,7 @@
 import { ref, shallowRef } from 'vue';
 import { ethers } from 'ethers';
-import NotaryABI from 'src/contracts/Notary.json';
-import { NOTARY_CONTRACT_ADDRESS } from 'src/contracts/address.js';
+import NotaryABI from '@/contracts/Notary.json';
+import { NOTARY_CONTRACT_ADDRESS } from '@/contracts/address.js';
 
 const account = ref<string | null>(null);
 const provider = shallowRef<ethers.providers.Web3Provider | null>(null);

@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { useWallet } from 'src/composables/useWallet';
+import { useWallet } from '@/composables/useWallet';
 
 const { account, notaryContract, connectWallet } = useWallet();
 

@@ -1,9 +1,10 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
-import { defineConfig } from '#q-app/wrappers';
+import { fileURLToPath, URL } from 'node:url';
+import type { UserConfig } from 'vite';
 
-export default defineConfig((/* ctx */) => {
+export default (/* ctx */) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -59,21 +60,26 @@ export default defineConfig((/* ctx */) => {
       // polyfillModulePreload: true,
       // distDir
 
-      // extendViteConf (viteConf) {},
+      extendViteConf(
+        viteConf: UserConfig,
+        { isServer, isClient }: { isServer: boolean; isClient: boolean },
+      ) {
+        viteConf.resolve = viteConf.resolve || {};
+        viteConf.resolve.alias = viteConf.resolve.alias || {};
+        Object.assign(viteConf.resolve.alias, {
+          '@': fileURLToPath(new URL('./src', import.meta.url)),
+        });
+      },
       // viteVuePluginOptions: {},
-
       vitePlugins: [
         [
           'vite-plugin-checker',
           {
-            vueTsc: process.env.NODE_ENV !== 'production',
-            eslint:
-              process.env.NODE_ENV === 'production'
-                ? undefined
-                : {
-                    lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
-                    useFlatConfig: true,
-                  },
+            // vueTsc: true,
+            eslint: {
+              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
+              useFlatConfig: true,
+            },
           },
           { server: false },
         ],
@@ -217,4 +223,4 @@ export default defineConfig((/* ctx */) => {
       extraScripts: [],
     },
   };
-});
+};
