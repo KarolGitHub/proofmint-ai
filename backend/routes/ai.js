@@ -41,4 +41,24 @@ router.post('/metadata', async (req, res) => {
   }
 });
 
+// @route   POST /ai/clauses
+// @desc    Extract all clauses from document content using AI
+// @access  Public
+router.post('/clauses', async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res
+        .status(400)
+        .json({ msg: 'Text is required for clause extraction' });
+    }
+    const openaiService = require('../services/openaiService');
+    const clauses = await openaiService.extractClauses(text);
+    res.json(clauses);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;

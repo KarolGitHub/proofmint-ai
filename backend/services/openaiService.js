@@ -20,7 +20,7 @@ ${text}
 """`;
 
   // Call OpenAI API (GPT-3.5/4)
-  const apiKey = process.env.OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY';
+  const apiKey = process.env.OPENAI_API_KEY || '';
   const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
   try {
@@ -65,6 +65,63 @@ ${text}
   }
 }
 
+/**
+ * Extracts all clauses (title and text) from document text using OpenAI.
+ * @param {string} text - The document text to analyze.
+ * @returns {Promise<Object>} - Extracted clauses as JSON.
+ */
+async function extractClauses(text) {
+  const prompt = `Extract all clauses from the following document text. For each clause, return its title (if present) and the full text of the clause. Return the result as a JSON array of objects with keys: title, text.
+
+Document text:
+"""
+${text}
+"""`;
+
+  const apiKey = process.env.OPENAI_API_KEY || '';
+  const apiUrl = 'https://api.openai.com/v1/chat/completions';
+
+  try {
+    const response = await axios.post(
+      apiUrl,
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert legal document parser.',
+          },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.2,
+        max_tokens: 800,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const content = response.data.choices[0].message.content;
+    let clauses;
+    try {
+      clauses = JSON.parse(content);
+    } catch (e) {
+      clauses = { raw: content };
+    }
+    return clauses;
+  } catch (error) {
+    console.error(
+      'OpenAI API error:',
+      error.response ? error.response.data : error.message
+    );
+    throw new Error('Failed to extract clauses from OpenAI');
+  }
+}
+
 module.exports = {
   extractMetadata,
+  extractClauses,
 };
