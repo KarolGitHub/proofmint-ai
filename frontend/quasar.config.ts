@@ -66,8 +66,7 @@ export default defineConfig((/* ctx */) => {
         [
           'vite-plugin-checker',
           {
-            vueTsc: true,
-            // Only enable eslint in dev mode
+            vueTsc: process.env.NODE_ENV !== 'production',
             eslint:
               process.env.NODE_ENV === 'production'
                 ? undefined
