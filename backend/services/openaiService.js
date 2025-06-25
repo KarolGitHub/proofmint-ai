@@ -121,7 +121,64 @@ ${text}
   }
 }
 
+/**
+ * Classifies the type of document using OpenAI.
+ * @param {string} text - The document text to analyze.
+ * @returns {Promise<Object>} - Document type classification as JSON.
+ */
+async function classifyDocumentType(text) {
+  const prompt = `Classify the type of the following document. Possible types include: contract, invoice, NDA, receipt, letter, agreement, or other. Return the result as a JSON object with a single key 'type' and a short explanation as 'reason'.
+
+Document text:
+"""
+${text}
+"""`;
+
+  const apiKey = process.env.OPENAI_API_KEY || '';
+  const apiUrl = 'https://api.openai.com/v1/chat/completions';
+
+  try {
+    const response = await axios.post(
+      apiUrl,
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert legal document classifier.',
+          },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.2,
+        max_tokens: 200,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const content = response.data.choices[0].message.content;
+    let docType;
+    try {
+      docType = JSON.parse(content);
+    } catch (e) {
+      docType = { raw: content };
+    }
+    return docType;
+  } catch (error) {
+    console.error(
+      'OpenAI API error:',
+      error.response ? error.response.data : error.message
+    );
+    throw new Error('Failed to classify document type with OpenAI');
+  }
+}
+
 module.exports = {
   extractMetadata,
   extractClauses,
+  classifyDocumentType,
 };

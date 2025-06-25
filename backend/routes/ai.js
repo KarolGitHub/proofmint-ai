@@ -61,4 +61,24 @@ router.post('/clauses', async (req, res) => {
   }
 });
 
+// @route   POST /ai/classify
+// @desc    Classify the type of document using AI
+// @access  Public
+router.post('/classify', async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res
+        .status(400)
+        .json({ msg: 'Text is required for document classification' });
+    }
+    const openaiService = require('../services/openaiService');
+    const docType = await openaiService.classifyDocumentType(text);
+    res.json(docType);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
