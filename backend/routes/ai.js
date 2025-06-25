@@ -21,4 +21,24 @@ router.post('/summarize', (req, res) => {
   }
 });
 
+// @route   POST /ai/metadata
+// @desc    Extract structured metadata from document content using AI
+// @access  Public
+router.post('/metadata', async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res
+        .status(400)
+        .json({ msg: 'Text is required for metadata extraction' });
+    }
+    const openaiService = require('../services/openaiService');
+    const metadata = await openaiService.extractMetadata(text);
+    res.json(metadata);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
