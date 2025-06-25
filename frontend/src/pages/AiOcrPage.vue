@@ -71,7 +71,13 @@
                         </div>
                 </div>
                 <div v-if="batchMode && batchResults.length" class="q-mt-md bg-grey-2 q-pa-md rounded-borders" style="max-width:900px;">
-                        <div class="text-h6">Batch AI / OCR Results</div>
+                        <div class="row items-center q-mb-md">
+                                <div class="text-h6">Batch AI / OCR Results</div>
+                                <q-space />
+                                <q-btn color="secondary" label="Export JSON" icon="download" @click="downloadBatchResults" dense flat />
+                                <q-btn color="secondary" label="Export CSV" icon="table_view" @click="downloadBatchResultsCSV" dense flat />
+                                <q-btn color="secondary" label="Export PDF" icon="picture_as_pdf" @click="downloadBatchResultsPDF" dense flat />
+                        </div>
                         <q-table
                                 :rows="batchTableRows"
                                 :columns="batchTableColumns"
@@ -118,6 +124,7 @@
 import { ref, computed } from 'vue';
 import { api } from '../boot/axios';
 import type { QTableColumn } from 'quasar';
+import jsPDF from 'jspdf';
 
 const batchMode = ref(false);
 const selectedFile = ref<File | null>(null);
@@ -252,5 +259,80 @@ function getSignatories(val: unknown): string[] {
 }
 function getClauses(val: unknown): { title: string; text: string }[] {
         return Array.isArray(val) ? (val as { title: string; text: string }[]) : [];
+}
+
+function flattenResult(result: Record<string, unknown>): string {
+        if (!result) return '';
+        if ('type' in result && 'reason' in result) {
+                return `Type: ${(result.type as string) || ''}; Reason: ${(result.reason as string) || ''}`;
+        }
+        let out = '';
+        if ('dates' in result && Array.isArray(result.dates)) {
+                out += `Dates: ${(result.dates as string[]).join(', ')}; `;
+        }
+        if ('signatories' in result && Array.isArray(result.signatories)) {
+                out += `Signatories: ${(result.signatories as string[]).join(', ')}; `;
+        }
+        if ('clauses' in result && Array.isArray(result.clauses)) {
+                out += 'Clauses: ' + (result.clauses as { title: string; text: string }[]).map(c => `${c.title}: ${c.text}`).join(' | ');
+        }
+        return out.trim();
+}
+
+function downloadBatchResultsCSV() {
+        const rows = batchTableRows.value;
+        let csv = 'File Name,Result\n';
+        for (const row of rows) {
+                const name = row.name.replace(/"/g, '""');
+                const resultStr = flattenResult(row.result).replace(/"/g, '""');
+                csv += `"${name}","${resultStr}"\n`;
+        }
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'batch-analysis-results.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+}
+
+function downloadBatchResultsPDF() {
+        const rows = batchTableRows.value;
+        const doc = new jsPDF();
+        doc.setFontSize(14);
+        doc.text('Batch AI / OCR Results', 10, 10);
+        let y = 20;
+        doc.setFontSize(10);
+        for (const row of rows) {
+                doc.text(`File: ${row.name}`, 10, y);
+                y += 6;
+                const resultStr = flattenResult(row.result);
+                const lines = doc.splitTextToSize(resultStr, 180);
+                for (const line of lines) {
+                        doc.text(line, 14, y);
+                        y += 5;
+                }
+                y += 2;
+                if (y > 270) {
+                        doc.addPage();
+                        y = 10;
+                }
+        }
+        doc.save('batch-analysis-results.pdf');
+}
+
+function downloadBatchResults() {
+        const dataStr = JSON.stringify(batchTableRows.value, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'batch-analysis-results.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 }
 </script>
