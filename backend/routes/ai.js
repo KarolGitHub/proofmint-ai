@@ -90,4 +90,82 @@ router.post('/classify', async (req, res) => {
   }
 });
 
+// @route   POST /ai/metadata/batch
+// @desc    Extract structured metadata from multiple documents using AI
+// @access  Public
+router.post('/metadata/batch', async (req, res) => {
+  try {
+    const { texts, provider = 'openai', language = 'en' } = req.body;
+    if (!Array.isArray(texts) || texts.length === 0) {
+      return sendError(
+        res,
+        400,
+        'An array of texts is required for batch metadata extraction'
+      );
+    }
+    const openaiService = require('../services/openaiService');
+    const results = await Promise.all(
+      texts.map((text) =>
+        openaiService.extractMetadata(text, provider, language)
+      )
+    );
+    res.json(results);
+  } catch (err) {
+    console.error(err.message);
+    sendError(res, 500, 'Server Error', err.message);
+  }
+});
+
+// @route   POST /ai/clauses/batch
+// @desc    Extract all clauses from multiple documents using AI
+// @access  Public
+router.post('/clauses/batch', async (req, res) => {
+  try {
+    const { texts, provider = 'openai', language = 'en' } = req.body;
+    if (!Array.isArray(texts) || texts.length === 0) {
+      return sendError(
+        res,
+        400,
+        'An array of texts is required for batch clause extraction'
+      );
+    }
+    const openaiService = require('../services/openaiService');
+    const results = await Promise.all(
+      texts.map((text) =>
+        openaiService.extractClauses(text, provider, language)
+      )
+    );
+    res.json(results);
+  } catch (err) {
+    console.error(err.message);
+    sendError(res, 500, 'Server Error', err.message);
+  }
+});
+
+// @route   POST /ai/classify/batch
+// @desc    Classify the type of multiple documents using AI
+// @access  Public
+router.post('/classify/batch', async (req, res) => {
+  try {
+    const { texts, provider = 'openai', language = 'en' } = req.body;
+    if (!Array.isArray(texts) || texts.length === 0) {
+      return sendError(
+        res,
+        400,
+        'An array of texts is required for batch document classification'
+      );
+    }
+    const openaiService = require('../services/openaiService');
+    const results = await Promise.all(
+      texts.map((text) =>
+        openaiService.classifyDocumentType(text, provider, language)
+      )
+    );
+    res.json(results);
+  } catch (err) {
+    console.error(err.message);
+    sendError(res, 500, 'Server Error', err.message);
+  }
+});
+
 module.exports = router;
