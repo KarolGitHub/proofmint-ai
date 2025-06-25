@@ -1,11 +1,19 @@
 const axios = require('axios');
 
 /**
- * Extracts structured metadata (dates, signatories, clauses) from document text using OpenAI.
+ * Extracts structured metadata (dates, signatories, clauses) from document text using OpenAI or local model.
  * @param {string} text - The document text to analyze.
+ * @param {string} provider - 'openai' or 'local'.
  * @returns {Promise<Object>} - Extracted metadata as JSON.
  */
-async function extractMetadata(text) {
+async function extractMetadata(text, provider = 'openai') {
+  if (provider === 'local') {
+    // Placeholder for local AI model logic
+    return {
+      message:
+        'Local AI processing is not yet implemented. Please use provider: "openai".',
+    };
+  }
   // Compose a prompt for OpenAI to extract metadata
   const prompt = `Extract the following structured metadata from the document text below:
 - All dates (as ISO format if possible)
@@ -66,11 +74,18 @@ ${text}
 }
 
 /**
- * Extracts all clauses (title and text) from document text using OpenAI.
+ * Extracts all clauses (title and text) from document text using OpenAI or local model.
  * @param {string} text - The document text to analyze.
+ * @param {string} provider - 'openai' or 'local'.
  * @returns {Promise<Object>} - Extracted clauses as JSON.
  */
-async function extractClauses(text) {
+async function extractClauses(text, provider = 'openai') {
+  if (provider === 'local') {
+    return {
+      message:
+        'Local AI processing is not yet implemented. Please use provider: "openai".',
+    };
+  }
   const prompt = `Extract all clauses from the following document text. For each clause, return its title (if present) and the full text of the clause. Return the result as a JSON array of objects with keys: title, text.
 
 Document text:
@@ -122,11 +137,18 @@ ${text}
 }
 
 /**
- * Classifies the type of document using OpenAI.
+ * Classifies the type of document using OpenAI or local model.
  * @param {string} text - The document text to analyze.
+ * @param {string} provider - 'openai' or 'local'.
  * @returns {Promise<Object>} - Document type classification as JSON.
  */
-async function classifyDocumentType(text) {
+async function classifyDocumentType(text, provider = 'openai') {
+  if (provider === 'local') {
+    return {
+      message:
+        'Local AI processing is not yet implemented. Please use provider: "openai".',
+    };
+  }
   const prompt = `Classify the type of the following document. Possible types include: contract, invoice, NDA, receipt, letter, agreement, or other. Return the result as a JSON object with a single key 'type' and a short explanation as 'reason'.
 
 Document text:

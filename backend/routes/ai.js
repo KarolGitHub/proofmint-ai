@@ -25,12 +25,12 @@ router.post('/summarize', (req, res) => {
 // @access  Public
 router.post('/metadata', async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, provider = 'openai' } = req.body;
     if (!text) {
       return sendError(res, 400, 'Text is required for metadata extraction');
     }
     const openaiService = require('../services/openaiService');
-    const metadata = await openaiService.extractMetadata(text);
+    const metadata = await openaiService.extractMetadata(text, provider);
     res.json(metadata);
   } catch (err) {
     console.error(err.message);
@@ -43,12 +43,12 @@ router.post('/metadata', async (req, res) => {
 // @access  Public
 router.post('/clauses', async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, provider = 'openai' } = req.body;
     if (!text) {
       return sendError(res, 400, 'Text is required for clause extraction');
     }
     const openaiService = require('../services/openaiService');
-    const clauses = await openaiService.extractClauses(text);
+    const clauses = await openaiService.extractClauses(text, provider);
     res.json(clauses);
   } catch (err) {
     console.error(err.message);
@@ -61,7 +61,7 @@ router.post('/clauses', async (req, res) => {
 // @access  Public
 router.post('/classify', async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, provider = 'openai' } = req.body;
     if (!text) {
       return sendError(
         res,
@@ -70,7 +70,7 @@ router.post('/classify', async (req, res) => {
       );
     }
     const openaiService = require('../services/openaiService');
-    const docType = await openaiService.classifyDocumentType(text);
+    const docType = await openaiService.classifyDocumentType(text, provider);
     res.json(docType);
   } catch (err) {
     console.error(err.message);
