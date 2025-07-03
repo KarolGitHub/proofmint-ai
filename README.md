@@ -2,7 +2,7 @@
 
 **ProofMintAI** is a modern Web3 application that combines **Artificial Intelligence (AI)**, **Blockchain**, and **Cryptocurrency mechanics** to analyze, validate, notarize, and optionally monetize documents in a fully decentralized and tamper-proof way.
 
-Built with **Vue 3 + Quasar**, you’ll experience high-performance UI combined with smart contracts, IPFS, AI, and token-driven flows—all designed for next-gen trustless document workflows.
+Built with **Vue 3 + Quasar**, you'll experience high-performance UI combined with smart contracts, IPFS, AI, and token-driven flows—all designed for next-gen trustless document workflows.
 
 ---
 
@@ -140,7 +140,7 @@ proofmintai/
 - MetaMask or WalletConnect
 - OpenAI API Key
 - web3.storage API Token
-- Polygon Mumbai testnet wallet (+ faucet MATIC)
+- Polygon Mumbai testnet wallet (+ faucet MATIC)
 - (Optional) CapRover/Coolify for deployment
 
 ---
@@ -182,15 +182,15 @@ Contract addresses
 
 🔮 Roadmap
 
-1. AI document analysis
-2. Document hashing & on-chain notarization
-3. Wallet payment (MATIC or token escrow)
-4. Mint receipt NFT
-5. Encrypted/IPFS storage switches
-6. Escrow payment flow
-7. Wallet reputation/KYC badges
-8. ZK-proof anonymized verification
-9. Mobile/Desktop builds via Quasar
+- [x] AI document analysis
+- [x] Document hashing & on-chain notarization
+- [x] Wallet payment (MATIC or token escrow)
+- [ ] Mint receipt NFT
+- [~] Encrypted/IPFS storage switches (public IPFS done, encrypted/switch UI not yet)
+- [x] Escrow payment flow (automated, event-driven, persisted)
+- [ ] Wallet reputation/KYC badges
+- [ ] ZK-proof anonymized verification
+- [ ] Mobile/Desktop builds via Quasar
 
 ---
 
