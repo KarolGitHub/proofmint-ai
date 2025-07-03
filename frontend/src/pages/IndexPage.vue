@@ -52,9 +52,9 @@
       <!-- Escrow/Payment Section -->
       <div class="q-mb-md"><b>Escrow Payment Demo</b></div>
       <q-form @submit.prevent="onCreateEscrow">
-        <q-input filled v-model="escrowPayee" label="Payee Address" class="q-mb-sm" />
-        <q-input filled v-model="escrowAmount" label="Amount (wei)" class="q-mb-sm" type="number" />
-        <q-btn color="primary" label="Create Escrow" type="submit" :loading="escrowLoading" class="q-mb-md" />
+        <q-input filled v-model="escrowPayee" label="Payee Address" class="q-mb-sm" :error="!!errors.payee" :error-message="errors.payee" />
+        <q-input filled v-model="escrowAmount" label="Amount (wei)" class="q-mb-sm" type="number" :error="!!errors.amount" :error-message="errors.amount" />
+        <q-btn color="primary" label="Create Escrow" type="submit" :loading="escrowLoading || isSubmitting" :disable="isSubmitting" class="q-mb-md" />
       </q-form>
       <div v-if="escrowError" class="text-negative q-mt-sm">{{ escrowError }}</div>
       <div v-if="escrowId !== null" class="q-mt-md">
@@ -77,6 +77,8 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useWallet } from '@/composables/useWallet';
 import { useEscrow } from '../composables/useEscrow';
+import { useForm, useField } from 'vee-validate';
+import * as yup from 'yup';
 
 const { account, notaryContract, connectWallet } = useWallet();
 
@@ -101,8 +103,17 @@ const txExplorerUrl = computed(() =>
 
 let lastFileName: string | null = null;
 
-const escrowPayee = ref('');
-const escrowAmount = ref('');
+const escrowSchema = yup.object({
+  payee: yup.string().required('Payee is required').matches(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address'),
+  amount: yup.string().required('Amount is required').matches(/^[0-9]+$/, 'Amount must be a number').test('is-positive', 'Amount must be positive', val => !!val && BigInt(val) > 0n),
+});
+
+const { handleSubmit, errors, isSubmitting, resetForm } = useForm({
+  validationSchema: escrowSchema,
+});
+const { value: escrowPayee } = useField<string>('payee');
+const { value: escrowAmount } = useField<string>('amount');
+
 const escrowId = ref<string | null>(null);
 const escrowDetails = ref<any>(null);
 
@@ -206,14 +217,15 @@ function formatTimestamp(ts: number) {
   return date.toLocaleString();
 }
 
-async function onCreateEscrow() {
+const onCreateEscrow = handleSubmit(async (values) => {
   escrowId.value = null;
   escrowDetails.value = null;
-  const id = await createEscrow(escrowPayee.value, escrowAmount.value);
+  const id = await createEscrow(values.payee, values.amount);
   if (id) {
     escrowId.value = id;
+    resetForm();
   }
-}
+});
 
 async function fetchEscrow() {
   if (!escrowId.value) return;
