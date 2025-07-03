@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 
 // Import routes
 const aiRoutes = require('./routes/ai');
@@ -27,6 +29,31 @@ app.use('/payment', paymentRoutes);
 app.get('/', (req, res) => {
   res.send('ProofMintAI Backend is running!');
 });
+
+const swaggerDefinition = {
+  openapi: '3.0.0',
+  info: {
+    title: 'ProofMintAI Backend API',
+    version: '1.0.0',
+    description:
+      'API documentation for ProofMintAI backend, including payment/escrow endpoints.',
+  },
+  servers: [
+    {
+      url:
+        'http://localhost:' +
+        (process.env.PORT || process.env.BACKEND_PORT || 3001),
+    },
+  ],
+};
+
+const options = {
+  swaggerDefinition,
+  apis: ['./routes/payment.js'],
+};
+
+const swaggerSpec = swaggerJsdoc(options);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const PORT = process.env.PORT || process.env.BACKEND_PORT || 3001;
 
