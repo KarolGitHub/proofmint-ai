@@ -46,6 +46,29 @@
         </div>
       </div>
       <div v-if="verifyError" class="text-negative q-mt-md">{{ verifyError }}</div>
+
+      <q-separator class="q-my-lg" />
+
+      <!-- Escrow/Payment Section -->
+      <div class="q-mb-md"><b>Escrow Payment Demo</b></div>
+      <q-form @submit.prevent="onCreateEscrow">
+        <q-input filled v-model="escrowPayee" label="Payee Address" class="q-mb-sm" />
+        <q-input filled v-model="escrowAmount" label="Amount (wei)" class="q-mb-sm" type="number" />
+        <q-btn color="primary" label="Create Escrow" type="submit" :loading="escrowLoading" class="q-mb-md" />
+      </q-form>
+      <div v-if="escrowError" class="text-negative q-mt-sm">{{ escrowError }}</div>
+      <div v-if="escrowId !== null" class="q-mt-md">
+        <div>Escrow Created! ID: <b>{{ escrowId }}</b></div>
+        <q-btn color="secondary" label="Get Escrow Details" @click="fetchEscrow" class="q-mt-sm" />
+        <div v-if="escrowDetails">
+          <div class="q-mt-sm">Payer: <code>{{ escrowDetails.payer }}</code></div>
+          <div>Payee: <code>{{ escrowDetails.payee }}</code></div>
+          <div>Amount: <code>{{ escrowDetails.amount }}</code> wei</div>
+          <div>Status: <span v-if="escrowDetails.isReleased">Released</span><span v-else-if="escrowDetails.isRefunded">Refunded</span><span v-else>Pending</span></div>
+          <q-btn color="positive" label="Release Escrow" @click="releaseEscrow" :disable="escrowDetails.isReleased || escrowDetails.isRefunded" class="q-mt-sm q-mr-sm" />
+          <q-btn color="negative" label="Refund Escrow" @click="refundEscrow" :disable="escrowDetails.isReleased || escrowDetails.isRefunded" class="q-mt-sm" />
+        </div>
+      </div>
     </div>
   </q-page>
 </template>
@@ -53,6 +76,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { useWallet } from '@/composables/useWallet';
+import { useEscrow } from '../composables/useEscrow';
 
 const { account, notaryContract, connectWallet } = useWallet();
 
@@ -76,6 +100,13 @@ const txExplorerUrl = computed(() =>
 );
 
 let lastFileName: string | null = null;
+
+const escrowPayee = ref('');
+const escrowAmount = ref('');
+const escrowId = ref<string | null>(null);
+const escrowDetails = ref<any>(null);
+
+const { loading: escrowLoading, error: escrowError, createEscrow, getEscrow, releaseEscrow: releaseEscrowApi, refundEscrow: refundEscrowApi } = useEscrow();
 
 onMounted(() => {
   const saved = localStorage.getItem(RECENT_DOCS_KEY);
@@ -173,5 +204,31 @@ async function verifyHash() {
 function formatTimestamp(ts: number) {
   const date = new Date(ts * 1000);
   return date.toLocaleString();
+}
+
+async function onCreateEscrow() {
+  escrowId.value = null;
+  escrowDetails.value = null;
+  const id = await createEscrow(escrowPayee.value, escrowAmount.value);
+  if (id) {
+    escrowId.value = id;
+  }
+}
+
+async function fetchEscrow() {
+  if (!escrowId.value) return;
+  escrowDetails.value = await getEscrow(escrowId.value);
+}
+
+async function releaseEscrow() {
+  if (!escrowId.value) return;
+  await releaseEscrowApi(escrowId.value);
+  await fetchEscrow();
+}
+
+async function refundEscrow() {
+  if (!escrowId.value) return;
+  await refundEscrowApi(escrowId.value);
+  await fetchEscrow();
 }
 </script>
