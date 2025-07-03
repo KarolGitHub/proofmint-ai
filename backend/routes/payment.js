@@ -16,6 +16,7 @@ const paymentService = require('../services/paymentService');
  *             required:
  *               - payee
  *               - amount
+ *               - documentHash
  *             properties:
  *               payee:
  *                 type: string
@@ -23,6 +24,9 @@ const paymentService = require('../services/paymentService');
  *               amount:
  *                 type: string
  *                 description: Amount in wei
+ *               documentHash:
+ *                 type: string
+ *                 description: Document hash
  *     responses:
  *       200:
  *         description: Escrow created
@@ -37,10 +41,16 @@ const paymentService = require('../services/paymentService');
 // POST /payment/escrow - create escrow
 router.post('/escrow', async (req, res) => {
   try {
-    const { payee, amount } = req.body;
-    if (!payee || !amount)
-      return res.status(400).json({ error: 'payee and amount required' });
-    const escrowId = await paymentService.createEscrow(payee, amount);
+    const { payee, amount, documentHash } = req.body;
+    if (!payee || !amount || !documentHash)
+      return res
+        .status(400)
+        .json({ error: 'payee, amount, and documentHash required' });
+    const escrowId = await paymentService.createEscrow(
+      payee,
+      amount,
+      documentHash
+    );
     res.json({ escrowId: escrowId.toString() });
   } catch (err) {
     res.status(500).json({ error: err.message });

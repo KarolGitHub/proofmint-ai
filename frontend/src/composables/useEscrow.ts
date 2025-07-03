@@ -5,11 +5,11 @@ export function useEscrow() {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
-  async function createEscrow(payee: string, amount: string) {
+  async function createEscrow(payee: string, amount: string, documentHash: string) {
     loading.value = true;
     error.value = null;
     try {
-      const res = await api.post('/payment/escrow', { payee, amount });
+      const res = await api.post('/payment/escrow', { payee, amount, documentHash });
       return res.data.escrowId;
     } catch (err: unknown) {
       if (typeof err === 'object' && err !== null && 'response' in err) {

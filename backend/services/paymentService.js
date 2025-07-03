@@ -1,5 +1,6 @@
 const { ethers } = require('ethers');
 require('dotenv').config();
+const { registerEscrow } = require('./notaryListener');
 
 const PAYMENT_ESCROW_ADDRESS = process.env.PAYMENT_ESCROW_ADDRESS;
 const PAYMENT_ESCROW_ABI = require('../contracts/PaymentEscrow.json');
@@ -12,7 +13,7 @@ const escrowContract = new ethers.Contract(
   wallet
 );
 
-async function createEscrow(payee, amount) {
+async function createEscrow(payee, amount, documentHash) {
   // amount in wei (string or BigNumber)
   const tx = await escrowContract.createEscrow(payee, { value: amount });
   const receipt = await tx.wait();
@@ -26,7 +27,11 @@ async function createEscrow(payee, amount) {
       }
     })
     .find((e) => e && e.name === 'EscrowCreated');
-  return event ? event.args.escrowId : null;
+  const escrowId = event ? event.args.escrowId : null;
+  if (escrowId && documentHash) {
+    registerEscrow(documentHash, escrowId.toString());
+  }
+  return escrowId;
 }
 
 async function releaseEscrow(escrowId) {

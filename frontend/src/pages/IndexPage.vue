@@ -265,7 +265,8 @@ function formatTimestamp(ts: number) {
 const onCreateEscrowForDoc = handleSubmit(async (values) => {
   escrowId.value = null;
   escrowDetails.value = null;
-  const id = await createEscrow(values.payee, values.amount);
+  if (!fileHash.value) return;
+  const id = await createEscrow(values.payee, values.amount, fileHash.value);
   if (id) {
     escrowId.value = id;
     escrowLinked.value = true;
