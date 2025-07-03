@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const paymentService = require('../services/paymentService');
+const receiptNftService = require('../services/receiptNftService');
 
 /**
  * @swagger
@@ -187,6 +188,60 @@ router.get('/escrow/:id', async (req, res) => {
         isRefunded: escrow.isRefunded,
       },
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /payment/mint-receipt:
+ *   post:
+ *     summary: Mint a receipt NFT for a notarized document
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - to
+ *               - documentHash
+ *               - tokenURI
+ *             properties:
+ *               to:
+ *                 type: string
+ *                 description: Recipient address
+ *               documentHash:
+ *                 type: string
+ *                 description: Document hash (bytes32)
+ *               tokenURI:
+ *                 type: string
+ *                 description: Token metadata URI
+ *     responses:
+ *       200:
+ *         description: NFT minted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 tokenId:
+ *                   type: string
+ */
+router.post('/mint-receipt', async (req, res) => {
+  try {
+    const { to, documentHash, tokenURI } = req.body;
+    if (!to || !documentHash || !tokenURI)
+      return res
+        .status(400)
+        .json({ error: 'to, documentHash, and tokenURI required' });
+    const tokenId = await receiptNftService.mintReceipt(
+      to,
+      documentHash,
+      tokenURI
+    );
+    res.json({ tokenId });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
