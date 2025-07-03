@@ -28,7 +28,8 @@
       </div>
       <div v-if="txHash">
         <div class="q-mt-md">Transaction Hash: <a :href="txExplorerUrl" target="_blank">{{ txHash }}</a></div>
-        <q-btn v-if="escrowLinked && escrowId && escrowDetails && !escrowDetails.isReleased && !escrowDetails.isRefunded" color="positive" label="Release Escrow" @click="releaseEscrow" class="q-mt-md" />
+        <div v-if="escrowReleaseStatus" class="q-mt-md text-positive">{{ escrowReleaseStatus }}</div>
+        <q-btn v-if="escrowLinked && escrowId && escrowDetails && !escrowDetails.isReleased && !escrowDetails.isRefunded && !escrowReleaseStatus" color="positive" label="Release Escrow" @click="releaseEscrow" class="q-mt-md" />
       </div>
       <div v-if="error" class="text-negative q-mt-md">{{ error }}</div>
 
@@ -146,6 +147,8 @@ const escrowLinked = ref(false);
 
 const { loading: escrowLoading, error: escrowError, createEscrow, getEscrow, releaseEscrow: releaseEscrowApi, refundEscrow: refundEscrowApi } = useEscrow();
 
+const escrowReleaseStatus = ref<string | null>(null);
+
 onMounted(() => {
   const saved = localStorage.getItem(RECENT_DOCS_KEY);
   if (saved) {
@@ -198,6 +201,7 @@ function onVerifyFileChange(event: Event) {
 async function recordHash() {
   error.value = null;
   txHash.value = null;
+  escrowReleaseStatus.value = null;
   if (!notaryContract.value?.recordDocument || !fileHash.value) {
     error.value = 'Contract not connected or file hash missing';
     return;
@@ -217,6 +221,16 @@ async function recordHash() {
       recentDocs.value.unshift({ name: lastFileName, hash: fileHash.value });
       // Limit to 5 recent docs
       if (recentDocs.value.length > 5) recentDocs.value.pop();
+    }
+    // Automatically release escrow after notarization
+    if (escrowLinked.value && escrowId.value) {
+      const released = await releaseEscrowApi(escrowId.value);
+      if (released) {
+        escrowReleaseStatus.value = 'Escrow released automatically after notarization.';
+        await fetchEscrow();
+      } else {
+        escrowReleaseStatus.value = 'Failed to release escrow automatically.';
+      }
     }
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Transaction failed';
