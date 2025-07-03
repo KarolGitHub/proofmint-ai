@@ -89,6 +89,27 @@ export function useEscrow() {
     }
   }
 
+  async function mintReceipt(to: string, documentHash: string, tokenURI: string) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await api.post('/payment/mint-receipt', { to, documentHash, tokenURI });
+      return res.data.tokenId;
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        // @ts-expect-error: err may have a response property from axios error
+        error.value = err.response?.data?.error || (err as Error).message;
+      } else if (err instanceof Error) {
+        error.value = err.message;
+      } else {
+        error.value = String(err);
+      }
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     loading,
     error,
@@ -96,5 +117,6 @@ export function useEscrow() {
     getEscrow,
     releaseEscrow,
     refundEscrow,
+    mintReceipt,
   };
 }

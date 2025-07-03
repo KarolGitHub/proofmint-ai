@@ -29,6 +29,7 @@
       <div v-if="txHash">
         <div class="q-mt-md">Transaction Hash: <a :href="txExplorerUrl" target="_blank">{{ txHash }}</a></div>
         <div v-if="escrowReleaseStatus" class="q-mt-md text-positive">{{ escrowReleaseStatus }}</div>
+        <div v-if="mintedTokenId" class="q-mt-md text-primary">Receipt NFT Minted! Token ID: <b>{{ mintedTokenId }}</b></div>
         <q-btn v-if="escrowLinked && escrowId && escrowDetails && !escrowDetails.isReleased && !escrowDetails.isRefunded && !escrowReleaseStatus" color="positive" label="Release Escrow" @click="releaseEscrow" class="q-mt-md" />
       </div>
       <div v-if="error" class="text-negative q-mt-md">{{ error }}</div>
@@ -145,9 +146,10 @@ const escrowId = ref<string | null>(null);
 const escrowDetails = ref<EscrowDetails | null>(null);
 const escrowLinked = ref(false);
 
-const { loading: escrowLoading, error: escrowError, createEscrow, getEscrow, releaseEscrow: releaseEscrowApi, refundEscrow: refundEscrowApi } = useEscrow();
+const { loading: escrowLoading, error: escrowError, createEscrow, getEscrow, releaseEscrow: releaseEscrowApi, refundEscrow: refundEscrowApi, mintReceipt } = useEscrow();
 
 const escrowReleaseStatus = ref<string | null>(null);
+const mintedTokenId = ref<string | null>(null);
 
 onMounted(() => {
   const saved = localStorage.getItem(RECENT_DOCS_KEY);
@@ -202,6 +204,7 @@ async function recordHash() {
   error.value = null;
   txHash.value = null;
   escrowReleaseStatus.value = null;
+  mintedTokenId.value = null;
   if (!notaryContract.value?.recordDocument || !fileHash.value) {
     error.value = 'Contract not connected or file hash missing';
     return;
@@ -230,6 +233,14 @@ async function recordHash() {
         await fetchEscrow();
       } else {
         escrowReleaseStatus.value = 'Failed to release escrow automatically.';
+      }
+    }
+    // Mint NFT receipt after notarization
+    if (account.value && fileHash.value) {
+      // Use a placeholder tokenURI for now
+      const tokenId = await mintReceipt(account.value, fileHash.value, 'https://example.com/metadata.json');
+      if (tokenId) {
+        mintedTokenId.value = tokenId;
       }
     }
   } catch (e: unknown) {
