@@ -6,11 +6,29 @@
       <input type="file" @change="onFileChange" />
       <div v-if="fileHash">
         <div class="q-mt-md">SHA-256 Hash: <code>{{ fileHash }}</code></div>
-        <q-btn color="secondary" label="Record Hash on Blockchain" @click="recordHash" :disable="isRecording"
-          class="q-mt-md" />
+        <div v-if="!escrowLinked">
+          <q-form @submit.prevent="onCreateEscrowForDoc">
+            <q-input filled v-model="escrowPayee" label="Payee Address" class="q-mb-sm" :error="!!errors.payee" :error-message="errors.payee" />
+            <q-input filled v-model="escrowAmount" label="Amount (wei)" class="q-mb-sm" type="number" :error="!!errors.amount" :error-message="errors.amount" />
+            <q-btn color="primary" label="Create Escrow for Notarization" type="submit" :loading="escrowLoading || isSubmitting" :disable="isSubmitting" class="q-mb-md" />
+          </q-form>
+          <div v-if="escrowError" class="text-negative q-mt-sm">{{ escrowError }}</div>
+        </div>
+        <div v-else>
+          <div class="q-mt-sm">Escrow Created! ID: <b>{{ escrowId }}</b></div>
+          <q-btn color="secondary" label="Get Escrow Details" @click="fetchEscrow" class="q-mt-sm" />
+          <div v-if="escrowDetails">
+            <div class="q-mt-sm">Payer: <code>{{ escrowDetails.payer }}</code></div>
+            <div>Payee: <code>{{ escrowDetails.payee }}</code></div>
+            <div>Amount: <code>{{ escrowDetails.amount }}</code> wei</div>
+            <div>Status: <span v-if="escrowDetails.isReleased">Released</span><span v-else-if="escrowDetails.isRefunded">Refunded</span><span v-else>Pending</span></div>
+          </div>
+        </div>
+        <q-btn color="secondary" label="Record Hash on Blockchain" @click="recordHash" :disable="isRecording || !escrowLinked" class="q-mt-md" />
       </div>
       <div v-if="txHash">
         <div class="q-mt-md">Transaction Hash: <a :href="txExplorerUrl" target="_blank">{{ txHash }}</a></div>
+        <q-btn v-if="escrowLinked && escrowId && escrowDetails && !escrowDetails.isReleased && !escrowDetails.isRefunded" color="positive" label="Release Escrow" @click="releaseEscrow" class="q-mt-md" />
       </div>
       <div v-if="error" class="text-negative q-mt-md">{{ error }}</div>
 
@@ -51,7 +69,7 @@
 
       <!-- Escrow/Payment Section -->
       <div class="q-mb-md"><b>Escrow Payment Demo</b></div>
-      <q-form @submit.prevent="onCreateEscrow">
+      <q-form @submit.prevent="onCreateEscrowForDoc">
         <q-input filled v-model="escrowPayee" label="Payee Address" class="q-mb-sm" :error="!!errors.payee" :error-message="errors.payee" />
         <q-input filled v-model="escrowAmount" label="Amount (wei)" class="q-mb-sm" type="number" :error="!!errors.amount" :error-message="errors.amount" />
         <q-btn color="primary" label="Create Escrow" type="submit" :loading="escrowLoading || isSubmitting" :disable="isSubmitting" class="q-mb-md" />
@@ -114,8 +132,17 @@ const { handleSubmit, errors, isSubmitting, resetForm } = useForm({
 const { value: escrowPayee } = useField<string>('payee');
 const { value: escrowAmount } = useField<string>('amount');
 
+type EscrowDetails = {
+  payer: string;
+  payee: string;
+  amount: string;
+  isReleased: boolean;
+  isRefunded: boolean;
+};
+
 const escrowId = ref<string | null>(null);
-const escrowDetails = ref<any>(null);
+const escrowDetails = ref<EscrowDetails | null>(null);
+const escrowLinked = ref(false);
 
 const { loading: escrowLoading, error: escrowError, createEscrow, getEscrow, releaseEscrow: releaseEscrowApi, refundEscrow: refundEscrowApi } = useEscrow();
 
@@ -175,6 +202,10 @@ async function recordHash() {
     error.value = 'Contract not connected or file hash missing';
     return;
   }
+  if (!escrowLinked.value) {
+    error.value = 'You must create an escrow before notarizing.';
+    return;
+  }
   isRecording.value = true;
   try {
     const hashBytes32 = fileHash.value;
@@ -217,12 +248,13 @@ function formatTimestamp(ts: number) {
   return date.toLocaleString();
 }
 
-const onCreateEscrow = handleSubmit(async (values) => {
+const onCreateEscrowForDoc = handleSubmit(async (values) => {
   escrowId.value = null;
   escrowDetails.value = null;
   const id = await createEscrow(values.payee, values.amount);
   if (id) {
     escrowId.value = id;
+    escrowLinked.value = true;
     resetForm();
   }
 });
