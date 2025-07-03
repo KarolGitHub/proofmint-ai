@@ -19,6 +19,12 @@ async function main() {
   const paymentEscrow = await PaymentEscrow.deploy();
   await paymentEscrow.deployed();
   console.log('PaymentEscrow deployed to:', paymentEscrow.address);
+
+  // Deploy ReceiptNFT
+  const ReceiptNFT = await hre.ethers.getContractFactory('ReceiptNFT');
+  const receiptNFT = await ReceiptNFT.deploy();
+  await receiptNFT.deployed();
+  console.log('ReceiptNFT deployed to:', receiptNFT.address);
 }
 
 // Execute deployment
