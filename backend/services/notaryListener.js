@@ -1,4 +1,6 @@
 const { ethers } = require('ethers');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const NOTARY_ADDRESS = process.env.NOTARY_CONTRACT_ADDRESS;
@@ -15,13 +17,36 @@ const escrow = new ethers.Contract(
   wallet
 );
 
-// In-memory mapping: documentHash (bytes32) => escrowId
-// In production, use a database!
-const docHashToEscrowId = new Map();
+const MAPPING_FILE = path.join(__dirname, 'escrowMapping.json');
+let docHashToEscrowId = new Map();
+
+// Load mapping from file
+if (fs.existsSync(MAPPING_FILE)) {
+  try {
+    const data = fs.readFileSync(MAPPING_FILE, 'utf-8');
+    docHashToEscrowId = new Map(Object.entries(JSON.parse(data)));
+  } catch (e) {
+    console.error('Failed to load escrow mapping:', e);
+  }
+}
+
+// Save mapping to file
+function saveMapping() {
+  try {
+    fs.writeFileSync(
+      MAPPING_FILE,
+      JSON.stringify(Object.fromEntries(docHashToEscrowId)),
+      'utf-8'
+    );
+  } catch (e) {
+    console.error('Failed to save escrow mapping:', e);
+  }
+}
 
 // Call this when escrow is created
 function registerEscrow(documentHash, escrowId) {
   docHashToEscrowId.set(documentHash, escrowId);
+  saveMapping();
 }
 
 // Listen for DocumentHashRecorded events
@@ -35,6 +60,7 @@ notary.on('DocumentHashRecorded', async (documentHash, recorder, timestamp) => {
         `Escrow ${escrowId} released for document hash ${documentHash}`
       );
       docHashToEscrowId.delete(documentHash); // Clean up
+      saveMapping();
     } catch (err) {
       console.error('Failed to release escrow:', err);
     }
