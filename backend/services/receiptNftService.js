@@ -1,6 +1,6 @@
 const { ethers } = require('ethers');
 require('dotenv').config();
-const { Web3Storage, File } = require('web3.storage');
+const { create } = require('@web3-storage/w3up-client');
 
 const RECEIPT_NFT_ADDRESS = process.env.RECEIPT_NFT_ADDRESS;
 const RECEIPT_NFT_ABI = require('../contracts/ReceiptNFT.json');
@@ -13,16 +13,19 @@ const receiptNftContract = new ethers.Contract(
   wallet
 );
 
-const web3StorageToken = process.env.WEB3_STORAGE_TOKEN;
-const web3Storage = new Web3Storage({ token: web3StorageToken });
+const W3UP_TOKEN = process.env.W3UP_TOKEN;
+const W3UP_SPACE_DID = process.env.W3UP_SPACE_DID;
 
-async function uploadMetadataToIPFS(metadata) {
+async function uploadMetadataToW3up(metadata) {
+  const client = await create();
+  await client.login(W3UP_TOKEN);
+  await client.setCurrentSpace(W3UP_SPACE_DID);
   const buffer = Buffer.from(JSON.stringify(metadata));
-  const files = [
-    new File([buffer], 'metadata.json', { type: 'application/json' }),
-  ];
-  const cid = await web3Storage.put(files);
-  return `https://ipfs.io/ipfs/${cid}/metadata.json`;
+  const file = new File([buffer], 'metadata.json', {
+    type: 'application/json',
+  });
+  const cid = await client.uploadFile(file);
+  return `https://w3s.link/ipfs/${cid}`;
 }
 
 async function mintReceipt(to, documentHash, _tokenURI) {
@@ -36,7 +39,7 @@ async function mintReceipt(to, documentHash, _tokenURI) {
     image:
       'https://bafybeif6w3k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w.ipfs.nftstorage.link/receipt.png', // Replace with your own static or generated image
   };
-  const tokenURI = await uploadMetadataToIPFS(metadata);
+  const tokenURI = await uploadMetadataToW3up(metadata);
   // documentHash should be a bytes32 string (0x...)
   const tx = await receiptNftContract.mintReceipt(to, documentHash, tokenURI);
   const receipt = await tx.wait();
