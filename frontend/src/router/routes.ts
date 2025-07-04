@@ -12,6 +12,11 @@ const routes: RouteRecordRaw[] = [
     ],
   },
 
+  {
+    path: '/gallery',
+    component: () => import('pages/ReceiptGallery.vue'),
+  },
+
   // Always leave this as last one,
   // but you can also remove it
   {
