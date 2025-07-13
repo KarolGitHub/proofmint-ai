@@ -4,9 +4,10 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
-    "copy-abi": "cp contracts/artifacts/contracts/Notary.sol/Notary.json backend/contracts/Notary.json && cp contracts/artifacts/contracts/ReceiptNFT.sol/ReceiptNFT.json backend/contracts/ReceiptNFT.json && cp contracts/artifacts/contracts/PaymentEscrow.sol/PaymentEscrow.json backend/contracts/PaymentEscrow.json"
+    "copy-abi": "mkdirp frontend/src/contracts && cp contracts/artifacts/contracts/Notary.sol/Notary.json backend/contracts/Notary.json && cp contracts/artifacts/contracts/ReceiptNFT.sol/ReceiptNFT.json backend/contracts/ReceiptNFT.json && cp contracts/artifacts/contracts/PaymentEscrow.sol/PaymentEscrow.json backend/contracts/PaymentEscrow.json && cp contracts/artifacts/contracts/ReceiptNFT.sol/ReceiptNFT.json frontend/src/contracts/ReceiptNFT.json"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "mkdirp": "^3.0.1"
   }
 }
