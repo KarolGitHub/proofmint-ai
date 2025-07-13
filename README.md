@@ -233,3 +233,7 @@ Thanks to:
 7. Tesseract.js
 
 ---
+
+## Backend Environment Variables
+
+- `CORS_ORIGIN`: Comma-separated list of allowed origins for CORS. Example: `http://localhost:3000,https://myfrontend.com`. Use `*` to allow all origins (not recommended for production).
