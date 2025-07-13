@@ -28,18 +28,7 @@ async function uploadMetadataToW3up(metadata) {
   return `https://w3s.link/ipfs/${cid}`;
 }
 
-async function mintReceipt(to, documentHash, _tokenURI) {
-  // Generate real metadata
-  const timestamp = Math.floor(Date.now() / 1000);
-  const metadata = {
-    name: 'ProofMintAI Notarization Receipt',
-    description: 'NFT receipt for document notarization on ProofMintAI',
-    documentHash,
-    timestamp,
-    image:
-      'https://bafybeif6w3k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w2k2w.ipfs.nftstorage.link/receipt.png', // Replace with your own static or generated image
-  };
-  const tokenURI = await uploadMetadataToW3up(metadata);
+async function mintReceipt(to, documentHash, tokenURI) {
   // documentHash should be a bytes32 string (0x...)
   const tx = await receiptNftContract.mintReceipt(to, documentHash, tokenURI);
   const receipt = await tx.wait();
