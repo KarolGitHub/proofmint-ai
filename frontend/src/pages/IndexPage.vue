@@ -29,7 +29,7 @@
           </div>
         </div>
         <q-btn color="secondary" label="Record Hash on Blockchain" @click="recordHash"
-          :disable="isRecording || !escrowLinked" class="q-mt-md" />
+          :disable="isRecording || !escrowLinked || ipfsUploading" class="q-mt-md" />
       </div>
       <div v-if="txHash">
         <div class="q-mt-md">Transaction Hash: <a :href="txExplorerUrl" target="_blank">{{ txHash }}</a></div>
@@ -69,6 +69,14 @@
       <div v-if="imagePreviewUrl" class="q-mb-md">
         <img :src="imagePreviewUrl" alt="Image Preview" style="max-width: 200px; max-height: 200px;" />
       </div>
+      <div v-if="ipfsUploading" class="q-mb-md">
+        <q-linear-progress :value="ipfsProgress / 100" color="primary" size="20px" rounded
+          aria-label="IPFS upload progress" :aria-valuenow="ipfsProgress" aria-valuemin="0" aria-valuemax="100"
+          role="progressbar">
+          <div class="absolute-full flex flex-center text-white">Uploading to IPFS: {{ ipfsProgress }}%</div>
+        </q-linear-progress>
+      </div>
+      <q-banner v-if="ipfsError" class="bg-red-2 text-negative q-mb-md">{{ ipfsError }}</q-banner>
 
       <div v-if="recentDocs.length" class="q-mt-lg q-pa-md bg-grey-2 rounded-borders"
         style="width:100%;max-width:600px;">
@@ -142,6 +150,7 @@ import { useEscrow } from '../composables/useEscrow';
 import { useForm, useField } from 'vee-validate';
 import * as yup from 'yup';
 import { useIpfsUpload } from '../composables/useIpfsUpload';
+import { useQuasar } from 'quasar';
 
 const { account, notaryContract, connectWallet } = useWallet();
 
@@ -196,8 +205,9 @@ const { loading: escrowLoading, error: escrowError, createEscrow, getEscrow, rel
 
 const escrowReleaseStatus = ref<string | null>(null);
 const mintedTokenId = ref<string | null>(null);
-const { uploading: ipfsUploading, error: ipfsError, uploadMetadataToIpfs, uploadImageToIpfs } = useIpfsUpload();
+const { uploading: ipfsUploading, error: ipfsError, progress: ipfsProgress, uploadMetadataToIpfs, uploadImageToIpfs } = useIpfsUpload();
 const showViewGallery = ref(false);
+const $q = useQuasar();
 
 onMounted(() => {
   const saved = localStorage.getItem(RECENT_DOCS_KEY);
@@ -302,6 +312,7 @@ async function recordHash() {
         imageUrl = await uploadImageToIpfs(selectedImage.value) || '';
         if (!imageUrl) {
           error.value = ipfsError.value || 'Failed to upload image to IPFS';
+          $q.notify({ type: 'negative', message: error.value, position: 'top' });
           return;
         }
       }
@@ -316,16 +327,23 @@ async function recordHash() {
       const tokenURI = await uploadMetadataToIpfs(metadata);
       if (!tokenURI) {
         error.value = ipfsError.value || 'Failed to upload metadata to IPFS';
+        $q.notify({ type: 'negative', message: error.value, position: 'top' });
         return;
       }
       const tokenId = await mintReceipt(account.value, fileHash.value, tokenURI);
       if (tokenId) {
         mintedTokenId.value = tokenId;
         showViewGallery.value = true;
+        $q.notify({ type: 'positive', message: 'NFT Minted Successfully!', position: 'top' });
+        // Reset image and progress
+        selectedImage.value = null;
+        imagePreviewUrl.value = null;
+        ipfsProgress.value = 0;
       }
     }
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Transaction failed';
+    $q.notify({ type: 'negative', message: error.value, position: 'top' });
   } finally {
     isRecording.value = false;
   }
