@@ -18,6 +18,7 @@ module.exports = {
     '@typescript-eslint/ban-ts-comment': 'warn',
     '@typescript-eslint/explicit-module-boundary-types': 'warn',
     '@typescript-eslint/no-unused-vars': 'warn',
+    'no-empty': 'off',
     'no-unused-vars': 'warn',
     'no-console': 'off',
     // Add more rules as needed

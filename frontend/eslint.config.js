@@ -41,6 +41,8 @@ export default defineConfigWithVueTs(
       '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
       'no-empty': 'off',
       '@typescript-eslint/no-unused-vars': 'warn',
+      'no-unused-vars': 'warn',
+      'no-console': 'off',
     },
   },
   // https://github.com/vuejs/eslint-config-typescript

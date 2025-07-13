@@ -8,9 +8,12 @@
         <div class="q-mt-md">SHA-256 Hash: <code>{{ fileHash }}</code></div>
         <div v-if="!escrowLinked">
           <q-form @submit.prevent="onCreateEscrowForDoc">
-            <q-input filled v-model="escrowPayee" label="Payee Address" class="q-mb-sm" :error="!!errors.payee" :error-message="errors.payee" />
-            <q-input filled v-model="escrowAmount" label="Amount (wei)" class="q-mb-sm" type="number" :error="!!errors.amount" :error-message="errors.amount" />
-            <q-btn color="primary" label="Create Escrow for Notarization" type="submit" :loading="escrowLoading || isSubmitting" :disable="isSubmitting" class="q-mb-md" />
+            <q-input filled v-model="escrowPayee" label="Payee Address" class="q-mb-sm" :error="!!errors.payee"
+              :error-message="errors.payee" />
+            <q-input filled v-model="escrowAmount" label="Amount (wei)" class="q-mb-sm" type="number"
+              :error="!!errors.amount" :error-message="errors.amount" />
+            <q-btn color="primary" label="Create Escrow for Notarization" type="submit"
+              :loading="escrowLoading || isSubmitting" :disable="isSubmitting" class="q-mb-md" />
           </q-form>
           <div v-if="escrowError" class="text-negative q-mt-sm">{{ escrowError }}</div>
         </div>
@@ -21,18 +24,51 @@
             <div class="q-mt-sm">Payer: <code>{{ escrowDetails.payer }}</code></div>
             <div>Payee: <code>{{ escrowDetails.payee }}</code></div>
             <div>Amount: <code>{{ escrowDetails.amount }}</code> wei</div>
-            <div>Status: <span v-if="escrowDetails.isReleased">Released</span><span v-else-if="escrowDetails.isRefunded">Refunded</span><span v-else>Pending</span></div>
+            <div>Status: <span v-if="escrowDetails.isReleased">Released</span><span
+                v-else-if="escrowDetails.isRefunded">Refunded</span><span v-else>Pending</span></div>
           </div>
         </div>
-        <q-btn color="secondary" label="Record Hash on Blockchain" @click="recordHash" :disable="isRecording || !escrowLinked" class="q-mt-md" />
+        <q-btn color="secondary" label="Record Hash on Blockchain" @click="recordHash"
+          :disable="isRecording || !escrowLinked" class="q-mt-md" />
       </div>
       <div v-if="txHash">
         <div class="q-mt-md">Transaction Hash: <a :href="txExplorerUrl" target="_blank">{{ txHash }}</a></div>
         <div v-if="escrowReleaseStatus" class="q-mt-md text-positive">{{ escrowReleaseStatus }}</div>
-        <div v-if="mintedTokenId" class="q-mt-md text-primary">Receipt NFT Minted! Token ID: <b>{{ mintedTokenId }}</b></div>
-        <q-btn v-if="escrowLinked && escrowId && escrowDetails && !escrowDetails.isReleased && !escrowDetails.isRefunded && !escrowReleaseStatus" color="positive" label="Release Escrow" @click="releaseEscrow" class="q-mt-md" />
+        <div v-if="mintedTokenId">
+          <div class="q-mt-md text-primary">Receipt NFT Minted! Token ID: <b>{{ mintedTokenId }}</b></div>
+          <q-btn v-if="showViewGallery" color="primary" label="View in Gallery" @click="$router.push('/gallery')"
+            class="q-mt-md" />
+        </div>
+        <q-btn
+          v-if="escrowLinked && escrowId && escrowDetails && !escrowDetails.isReleased && !escrowDetails.isRefunded && !escrowReleaseStatus"
+          color="positive" label="Release Escrow" @click="releaseEscrow" class="q-mt-md" />
       </div>
       <div v-if="error" class="text-negative q-mt-md">{{ error }}</div>
+
+      <div v-if="recentDocs.length" class="q-mt-lg q-pa-md bg-grey-2 rounded-borders"
+        style="width:100%;max-width:600px;">
+        <div class="row items-center q-mb-md">
+          <div class="text-h6">Recently Notarized This Session</div>
+          <q-space />
+          <q-btn flat dense icon="delete" color="negative" @click="clearRecentDocs" label="Clear" />
+        </div>
+        <q-list bordered>
+          <q-item v-for="doc in recentDocs" :key="doc.hash">
+            <q-item-section>
+              <div><b>{{ doc.name }}</b></div>
+              <div class="text-caption">{{ doc.hash }}</div>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
+
+      <q-separator class="q-my-lg" />
+
+      <div class="q-mb-md"><b>Optional: Upload Image for NFT</b></div>
+      <input type="file" accept="image/*" @change="onImageChange" />
+      <div v-if="imagePreviewUrl" class="q-mb-md">
+        <img :src="imagePreviewUrl" alt="Image Preview" style="max-width: 200px; max-height: 200px;" />
+      </div>
 
       <div v-if="recentDocs.length" class="q-mt-lg q-pa-md bg-grey-2 rounded-borders"
         style="width:100%;max-width:600px;">
@@ -72,9 +108,12 @@
       <!-- Escrow/Payment Section -->
       <div class="q-mb-md"><b>Escrow Payment Demo</b></div>
       <q-form @submit.prevent="onCreateEscrowForDoc">
-        <q-input filled v-model="escrowPayee" label="Payee Address" class="q-mb-sm" :error="!!errors.payee" :error-message="errors.payee" />
-        <q-input filled v-model="escrowAmount" label="Amount (wei)" class="q-mb-sm" type="number" :error="!!errors.amount" :error-message="errors.amount" />
-        <q-btn color="primary" label="Create Escrow" type="submit" :loading="escrowLoading || isSubmitting" :disable="isSubmitting" class="q-mb-md" />
+        <q-input filled v-model="escrowPayee" label="Payee Address" class="q-mb-sm" :error="!!errors.payee"
+          :error-message="errors.payee" />
+        <q-input filled v-model="escrowAmount" label="Amount (wei)" class="q-mb-sm" type="number"
+          :error="!!errors.amount" :error-message="errors.amount" />
+        <q-btn color="primary" label="Create Escrow" type="submit" :loading="escrowLoading || isSubmitting"
+          :disable="isSubmitting" class="q-mb-md" />
       </q-form>
       <div v-if="escrowError" class="text-negative q-mt-sm">{{ escrowError }}</div>
       <div v-if="escrowId !== null" class="q-mt-md">
@@ -84,9 +123,12 @@
           <div class="q-mt-sm">Payer: <code>{{ escrowDetails.payer }}</code></div>
           <div>Payee: <code>{{ escrowDetails.payee }}</code></div>
           <div>Amount: <code>{{ escrowDetails.amount }}</code> wei</div>
-          <div>Status: <span v-if="escrowDetails.isReleased">Released</span><span v-else-if="escrowDetails.isRefunded">Refunded</span><span v-else>Pending</span></div>
-          <q-btn color="positive" label="Release Escrow" @click="releaseEscrow" :disable="escrowDetails.isReleased || escrowDetails.isRefunded" class="q-mt-sm q-mr-sm" />
-          <q-btn color="negative" label="Refund Escrow" @click="refundEscrow" :disable="escrowDetails.isReleased || escrowDetails.isRefunded" class="q-mt-sm" />
+          <div>Status: <span v-if="escrowDetails.isReleased">Released</span><span
+              v-else-if="escrowDetails.isRefunded">Refunded</span><span v-else>Pending</span></div>
+          <q-btn color="positive" label="Release Escrow" @click="releaseEscrow"
+            :disable="escrowDetails.isReleased || escrowDetails.isRefunded" class="q-mt-sm q-mr-sm" />
+          <q-btn color="negative" label="Refund Escrow" @click="refundEscrow"
+            :disable="escrowDetails.isReleased || escrowDetails.isRefunded" class="q-mt-sm" />
         </div>
       </div>
     </div>
@@ -99,6 +141,7 @@ import { useWallet } from '@/composables/useWallet';
 import { useEscrow } from '../composables/useEscrow';
 import { useForm, useField } from 'vee-validate';
 import * as yup from 'yup';
+import { useIpfsUpload } from '../composables/useIpfsUpload';
 
 const { account, notaryContract, connectWallet } = useWallet();
 
@@ -114,6 +157,9 @@ const verifyFileHash = ref<string | null>(null);
 const verifyResult = ref<number | null>(null);
 const verifyError = ref<string | null>(null);
 const isVerifying = ref(false);
+
+const selectedImage = ref<File | null>(null);
+const imagePreviewUrl = ref<string | null>(null);
 
 const txExplorerUrl = computed(() =>
   txHash.value
@@ -150,6 +196,8 @@ const { loading: escrowLoading, error: escrowError, createEscrow, getEscrow, rel
 
 const escrowReleaseStatus = ref<string | null>(null);
 const mintedTokenId = ref<string | null>(null);
+const { uploading: ipfsUploading, error: ipfsError, uploadMetadataToIpfs, uploadImageToIpfs } = useIpfsUpload();
+const showViewGallery = ref(false);
 
 onMounted(() => {
   const saved = localStorage.getItem(RECENT_DOCS_KEY);
@@ -200,11 +248,23 @@ function onVerifyFileChange(event: Event) {
   }
 }
 
+function onImageChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files[0]) {
+    selectedImage.value = input.files[0];
+    imagePreviewUrl.value = URL.createObjectURL(input.files[0]);
+  } else {
+    selectedImage.value = null;
+    imagePreviewUrl.value = null;
+  }
+}
+
 async function recordHash() {
   error.value = null;
   txHash.value = null;
   escrowReleaseStatus.value = null;
   mintedTokenId.value = null;
+  showViewGallery.value = false;
   if (!notaryContract.value?.recordDocument || !fileHash.value) {
     error.value = 'Contract not connected or file hash missing';
     return;
@@ -237,10 +297,31 @@ async function recordHash() {
     }
     // Mint NFT receipt after notarization
     if (account.value && fileHash.value) {
-      // Use a placeholder tokenURI for now
-      const tokenId = await mintReceipt(account.value, fileHash.value, 'https://example.com/metadata.json');
+      let imageUrl = '';
+      if (selectedImage.value) {
+        imageUrl = await uploadImageToIpfs(selectedImage.value) || '';
+        if (!imageUrl) {
+          error.value = ipfsError.value || 'Failed to upload image to IPFS';
+          return;
+        }
+      }
+      // Build metadata
+      const metadata = {
+        name: 'ProofMintAI Notarization Receipt',
+        description: 'NFT receipt for document notarization on ProofMintAI',
+        documentHash: fileHash.value,
+        timestamp: Math.floor(Date.now() / 1000),
+        image: imageUrl,
+      };
+      const tokenURI = await uploadMetadataToIpfs(metadata);
+      if (!tokenURI) {
+        error.value = ipfsError.value || 'Failed to upload metadata to IPFS';
+        return;
+      }
+      const tokenId = await mintReceipt(account.value, fileHash.value, tokenURI);
       if (tokenId) {
         mintedTokenId.value = tokenId;
+        showViewGallery.value = true;
       }
     }
   } catch (e: unknown) {

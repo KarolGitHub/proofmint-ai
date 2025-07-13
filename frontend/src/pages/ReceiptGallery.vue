@@ -6,6 +6,7 @@
     </div>
     <div v-else>
       <div class="q-mb-md">Connected: {{ account }}</div>
+      <q-spinner v-if="loading" color="primary" size="2em" class="q-mb-md" />
       <q-btn color="primary" label="Refresh Gallery" @click="fetchGallery" :loading="loading" class="q-mb-md" />
       <q-banner v-if="error" class="bg-red-2 text-negative q-mb-md">{{ error }}</q-banner>
       <q-banner v-if="nfts.length === 0 && !loading" class="bg-grey-2">No receipt NFTs found for this
@@ -33,13 +34,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useWallet } from '@/composables/useWallet';
 import { ethers } from 'ethers';
 import ReceiptNFTAbi from '../contracts/ReceiptNFT.json';
 import { fetchReceiptNFTs } from '../services/ContractService';
+import { useRoute } from 'vue-router';
 
-const RECEIPT_NFT_ADDRESS = import.meta.env.VITE_RECEIPT_NFT_ADDRESS || '0x8f7B760353435313BCDaFDc7DAd45439E3d388a5';
+const RECEIPT_NFT_ADDRESS = import.meta.env.VITE_RECEIPT_NFT_ADDRESS;
 const AMOY_EXPLORER = 'https://www.oklink.com/amoy';
 
 const { account, connectWallet, provider } = useWallet();
@@ -69,4 +71,8 @@ async function fetchGallery() {
 
 // Auto-fetch on wallet connect
 if (account.value) fetchGallery();
+
+watch([account, route], () => {
+  if (account.value) fetchGallery();
+});
 </script>
