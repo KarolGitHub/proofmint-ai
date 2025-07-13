@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
-    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend"
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "copy-abi": "cp contracts/artifacts/contracts/Notary.sol/Notary.json backend/contracts/Notary.json && cp contracts/artifacts/contracts/ReceiptNFT.sol/ReceiptNFT.json backend/contracts/ReceiptNFT.json && cp contracts/artifacts/contracts/PaymentEscrow.sol/PaymentEscrow.json backend/contracts/PaymentEscrow.json"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
