@@ -4,9 +4,9 @@ const path = require('path');
 require('dotenv').config();
 
 const NOTARY_ADDRESS = process.env.NOTARY_CONTRACT_ADDRESS;
-const NOTARY_ABI = require('../contracts/Notary.json');
+const NOTARY_ABI = require('../contracts/Notary.json').abi;
 const PAYMENT_ESCROW_ADDRESS = process.env.PAYMENT_ESCROW_ADDRESS;
-const PAYMENT_ESCROW_ABI = require('../contracts/PaymentEscrow.json');
+const PAYMENT_ESCROW_ABI = require('../contracts/PaymentEscrow.json').abi;
 const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 

@@ -3,7 +3,7 @@ require('dotenv').config();
 const { registerEscrow } = require('./notaryListener');
 
 const PAYMENT_ESCROW_ADDRESS = process.env.PAYMENT_ESCROW_ADDRESS;
-const PAYMENT_ESCROW_ABI = require('../contracts/PaymentEscrow.json');
+const PAYMENT_ESCROW_ABI = require('../contracts/PaymentEscrow.json').abi;
 
 const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);

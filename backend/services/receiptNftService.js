@@ -3,7 +3,7 @@ require('dotenv').config();
 const { create } = require('@web3-storage/w3up-client');
 
 const RECEIPT_NFT_ADDRESS = process.env.RECEIPT_NFT_ADDRESS;
-const RECEIPT_NFT_ABI = require('../contracts/ReceiptNFT.json');
+const RECEIPT_NFT_ABI = require('../contracts/ReceiptNFT.json').abi;
 
 const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
