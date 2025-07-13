@@ -1,7 +1,6 @@
 import { boot } from 'quasar/wrappers';
 import { ethers } from 'ethers';
 import NotaryABI from '@/contracts/Notary.json';
-import { NOTARY_CONTRACT_ADDRESS } from '@/contracts/address.js';
 
 // Add type declaration for window.ethereum
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,7 +17,11 @@ let notaryContract: ethers.Contract | null = null;
 export default boot(({ app }) => {
   if (window.ethereum) {
     provider = new ethers.providers.Web3Provider(window.ethereum);
-    notaryContract = new ethers.Contract(NOTARY_CONTRACT_ADDRESS, NotaryABI, provider);
+    notaryContract = new ethers.Contract(
+      import.meta.env.VITE_NOTARY_CONTRACT_ADDRESS,
+      NotaryABI,
+      provider,
+    );
   }
 
   app.config.globalProperties.$ethers = ethers;

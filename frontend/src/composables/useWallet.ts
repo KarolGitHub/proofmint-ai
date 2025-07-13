@@ -1,7 +1,6 @@
 import { ref, shallowRef } from 'vue';
 import { ethers } from 'ethers';
 import NotaryABI from '@/contracts/Notary.json';
-import { NOTARY_CONTRACT_ADDRESS } from '@/contracts/address.js';
 
 const account = ref<string | null>(null);
 const provider = shallowRef<ethers.providers.Web3Provider | null>(null);
@@ -16,7 +15,11 @@ export function useWallet() {
       await provider.value.send('eth_requestAccounts', []);
       signer.value = provider.value.getSigner();
       account.value = await signer.value.getAddress();
-      notaryContract.value = new ethers.Contract(NOTARY_CONTRACT_ADDRESS, NotaryABI, signer.value);
+      notaryContract.value = new ethers.Contract(
+        import.meta.env.VITE_NOTARY_CONTRACT_ADDRESS,
+        NotaryABI,
+        signer.value,
+      );
     } else {
       throw new Error('MetaMask is not installed');
     }

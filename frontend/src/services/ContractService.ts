@@ -1,10 +1,8 @@
 import { ethers } from 'ethers';
 import type { providers } from 'ethers';
-// @ts-expect-error: No type declarations for contract ABI JSON
 import ReceiptNFTAbi from '../contracts/ReceiptNFT.json';
 
-const RECEIPT_NFT_ADDRESS =
-  import.meta.env.VITE_RECEIPT_NFT_ADDRESS || '0x8f7B760353435313BCDaFDc7DAd45439E3d388a5';
+const RECEIPT_NFT_ADDRESS = import.meta.env.VITE_RECEIPT_NFT_ADDRESS;
 const AMOY_EXPLORER = 'https://www.oklink.com/amoy';
 
 type ReceiptNFTMetadata = {
