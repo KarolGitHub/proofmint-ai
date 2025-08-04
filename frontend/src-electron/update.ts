@@ -60,12 +60,12 @@ export function update(win: BrowserWindow) {
   autoUpdater.on('update-available', (info) => {
     win.webContents.send('update-status', 'Update available');
     win.webContents.send('update-info', info);
-    
+
     // Ask user if they want to download the update
     win.webContents.send('update-available', {
       version: info.version,
       releaseDate: info.releaseDate,
-      releaseNotes: info.releaseNotes
+      releaseNotes: info.releaseNotes,
     });
   });
 
@@ -82,7 +82,7 @@ export function update(win: BrowserWindow) {
       speed: progressObj.bytesPerSecond,
       percent: progressObj.percent,
       transferred: progressObj.transferred,
-      total: progressObj.total
+      total: progressObj.total,
     });
   });
 
@@ -102,4 +102,4 @@ export function update(win: BrowserWindow) {
   require('electron').ipcMain.handle('check-for-updates', () => {
     autoUpdater.checkForUpdates();
   });
-} 
+}

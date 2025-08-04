@@ -5,32 +5,32 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // App information
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   getAppName: () => ipcRenderer.invoke('get-app-name'),
-  
+
   // Store operations
   storeGet: (key: string) => ipcRenderer.invoke('store-get', key),
   storeSet: (key: string, value: any) => ipcRenderer.invoke('store-set', key, value),
   storeDelete: (key: string) => ipcRenderer.invoke('store-delete', key),
-  
+
   // Window operations
   openWindow: (arg: string) => ipcRenderer.invoke('open-win', arg),
-  
+
   // Platform information
   platform: process.platform,
-  
+
   // Listen for messages from main process
   onMainProcessMessage: (callback: (message: string) => void) => {
     ipcRenderer.on('main-process-message', (_, message) => callback(message));
   },
-  
+
   // Remove listeners
   removeAllListeners: (channel: string) => {
     ipcRenderer.removeAllListeners(channel);
-  }
+  },
 });
 
 // --------- Preload scripts loading ---------
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     if (condition.includes(document.readyState)) {
       resolve(true);
     } else {
@@ -45,7 +45,7 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 
 const safeDOM = {
   append(parent: HTMLElement, child: HTMLElement) {
-    if (!Array.from(parent.children).find(e => e === child)) {
+    if (!Array.from(parent.children).find((e) => e === child)) {
       return parent.appendChild(child);
     }
   },
@@ -118,4 +118,4 @@ function useLoading() {
 const { appendLoading, removeLoading } = useLoading();
 domReady().then(appendLoading);
 
-window.removeLoading = removeLoading; 
+window.removeLoading = removeLoading;

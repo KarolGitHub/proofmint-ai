@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'ProofMintAI',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
   },
   plugins: {
     SplashScreen: {
@@ -20,19 +20,19 @@ const config: CapacitorConfig = {
       splashFullScreen: true,
       splashImmersive: true,
       layoutName: 'launch_screen',
-      useDialog: true
+      useDialog: true,
     },
     StatusBar: {
       style: 'dark',
-      backgroundColor: '#282c34'
+      backgroundColor: '#282c34',
     },
     LocalNotifications: {
       smallIcon: 'ic_stat_icon_config_sample',
       iconColor: '#488AFF',
-      sound: 'beep.wav'
+      sound: 'beep.wav',
     },
     PushNotifications: {
-      presentationOptions: ['badge', 'sound', 'alert']
+      presentationOptions: ['badge', 'sound', 'alert'],
     },
     Device: {
       // Device plugin configuration
@@ -58,7 +58,7 @@ const config: CapacitorConfig = {
     Keyboard: {
       resize: 'body',
       style: 'dark',
-      resizeOnFullScreen: true
+      resizeOnFullScreen: true,
     },
     App: {
       // App plugin configuration
@@ -77,13 +77,13 @@ const config: CapacitorConfig = {
     },
     Dialog: {
       // Dialog plugin configuration
-    }
+    },
   },
   ios: {
     contentInset: 'automatic',
     backgroundColor: '#282c34',
     limitsNavigationsToAppBoundDomains: true,
-    scheme: 'proofmintai'
+    scheme: 'proofmintai',
   },
   android: {
     backgroundColor: '#282c34',
@@ -97,8 +97,8 @@ const config: CapacitorConfig = {
     allowContentAccess: true,
     allowFileAccessFromFileURLs: true,
     allowUniversalAccessFromFileURLs: true,
-    scheme: 'proofmintai'
-  }
+    scheme: 'proofmintai',
+  },
 };
 
-export default config; 
+export default config;

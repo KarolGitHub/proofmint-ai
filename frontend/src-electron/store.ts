@@ -7,30 +7,30 @@ export const store = new Store({
     theme: 'auto',
     language: 'en',
     autoUpdate: true,
-    
+
     // Wallet settings
     lastConnectedWallet: null,
     walletPreferences: {},
-    
+
     // Document settings
     defaultStorageType: 'public', // 'public' or 'encrypted'
     encryptionKey: null,
-    
+
     // UI settings
     sidebarCollapsed: false,
     notifications: true,
-    
+
     // API settings
     backendUrl: 'http://localhost:3001',
     ipfsGateway: 'https://ipfs.io/ipfs/',
-    
+
     // Development settings
     devMode: false,
-    debugLogs: false
+    debugLogs: false,
   },
   encryptionKey: 'your-encryption-key-here', // Change this in production
   clearInvalidConfig: true,
-  accessPropertiesByDotNotation: true
+  accessPropertiesByDotNotation: true,
 });
 
 // Helper functions for type-safe access
@@ -66,7 +66,7 @@ export const getAppSettings = () => ({
   sidebarCollapsed: getStoreValue<boolean>('sidebarCollapsed', false),
   notifications: getStoreValue<boolean>('notifications', true),
   devMode: getStoreValue<boolean>('devMode', false),
-  debugLogs: getStoreValue<boolean>('debugLogs', false)
+  debugLogs: getStoreValue<boolean>('debugLogs', false),
 });
 
 export const setAppSettings = (settings: Partial<ReturnType<typeof getAppSettings>>) => {
@@ -77,7 +77,7 @@ export const setAppSettings = (settings: Partial<ReturnType<typeof getAppSetting
 
 export const getWalletSettings = () => ({
   lastConnectedWallet: getStoreValue<string | null>('lastConnectedWallet', null),
-  walletPreferences: getStoreValue<Record<string, any>>('walletPreferences', {})
+  walletPreferences: getStoreValue<Record<string, any>>('walletPreferences', {}),
 });
 
 export const setWalletSettings = (settings: Partial<ReturnType<typeof getWalletSettings>>) => {
@@ -88,7 +88,7 @@ export const setWalletSettings = (settings: Partial<ReturnType<typeof getWalletS
 
 export const getDocumentSettings = () => ({
   defaultStorageType: getStoreValue<'public' | 'encrypted'>('defaultStorageType', 'public'),
-  encryptionKey: getStoreValue<string | null>('encryptionKey', null)
+  encryptionKey: getStoreValue<string | null>('encryptionKey', null),
 });
 
 export const setDocumentSettings = (settings: Partial<ReturnType<typeof getDocumentSettings>>) => {
@@ -99,11 +99,11 @@ export const setDocumentSettings = (settings: Partial<ReturnType<typeof getDocum
 
 export const getAPISettings = () => ({
   backendUrl: getStoreValue<string>('backendUrl', 'http://localhost:3001'),
-  ipfsGateway: getStoreValue<string>('ipfsGateway', 'https://ipfs.io/ipfs/')
+  ipfsGateway: getStoreValue<string>('ipfsGateway', 'https://ipfs.io/ipfs/'),
 });
 
 export const setAPISettings = (settings: Partial<ReturnType<typeof getAPISettings>>) => {
   Object.entries(settings).forEach(([key, value]) => {
     setStoreValue(key, value);
   });
-}; 
+};

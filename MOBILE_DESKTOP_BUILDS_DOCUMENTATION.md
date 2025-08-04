@@ -25,6 +25,7 @@ This documentation covers the complete build system, configuration, and deployme
 ## Features
 
 ### Desktop (Electron)
+
 - ✅ Cross-platform desktop applications
 - ✅ Auto-updater integration
 - ✅ Native system integration
@@ -36,6 +37,7 @@ This documentation covers the complete build system, configuration, and deployme
 - ✅ Offline capability
 
 ### Mobile (Capacitor)
+
 - ✅ Native Android and iOS apps
 - ✅ Device API access (camera, GPS, etc.)
 - ✅ Push notifications
@@ -48,6 +50,7 @@ This documentation covers the complete build system, configuration, and deployme
 ## Prerequisites
 
 ### For Desktop Builds
+
 ```bash
 # Node.js 18+ and npm
 node --version
@@ -58,6 +61,7 @@ npm install
 ```
 
 ### For Mobile Builds
+
 ```bash
 # Android Development
 - Android Studio
@@ -86,22 +90,26 @@ src-electron/
 ### Key Features
 
 #### 1. Main Process (`electron-main.ts`)
+
 - Window management
 - IPC communication
 - Auto-updater integration
 - System integration
 
 #### 2. Preload Script (`electron-preload.ts`)
+
 - Secure API exposure
 - Context bridge setup
 - Loading animations
 
 #### 3. Auto-Updater (`update.ts`)
+
 - Automatic update checks
 - Download progress tracking
 - Installation management
 
 #### 4. Persistent Storage (`store.ts`)
+
 - Configuration management
 - User preferences
 - Secure data storage
@@ -156,6 +164,7 @@ src-capacitor/
 ### Key Features
 
 #### 1. Native Device Access
+
 - Camera and photo library
 - GPS and location services
 - File system access
@@ -163,6 +172,7 @@ src-capacitor/
 - Network status
 
 #### 2. Native UI Components
+
 - Splash screen
 - Status bar
 - Keyboard handling
@@ -170,6 +180,7 @@ src-capacitor/
 - Action sheets
 
 #### 3. Platform Integration
+
 - Deep linking
 - App lifecycle management
 - Background processing
@@ -208,10 +219,14 @@ const config: CapacitorConfig = {
   appName: 'ProofMintAI',
   webDir: 'dist',
   plugins: {
-    SplashScreen: { /* ... */ },
-    StatusBar: { /* ... */ },
+    SplashScreen: {
+      /* ... */
+    },
+    StatusBar: {
+      /* ... */
+    },
     // ... other plugins
-  }
+  },
 };
 ```
 
@@ -225,7 +240,7 @@ const config: CapacitorConfig = {
     // Web builds
     "dev": "quasar dev",
     "build": "quasar build",
-    
+
     // Electron (Desktop)
     "electron:dev": "quasar dev -m electron",
     "electron:build": "quasar build -m electron",
@@ -234,7 +249,7 @@ const config: CapacitorConfig = {
     "desktop:build:win": "quasar build -m electron --target win",
     "desktop:build:mac": "quasar build -m electron --target mac",
     "desktop:build:linux": "quasar build -m electron --target linux",
-    
+
     // Capacitor (Mobile)
     "capacitor:dev": "quasar dev -m capacitor",
     "capacitor:build": "quasar build -m capacitor",
@@ -245,7 +260,7 @@ const config: CapacitorConfig = {
     "capacitor:open:ios": "npx cap open ios",
     "mobile:build:android": "quasar build -m capacitor && npx cap build android",
     "mobile:build:ios": "quasar build -m capacitor && npx cap build ios",
-    
+
     // All platforms
     "build:all": "npm run build && npm run electron:build && npm run capacitor:build"
   }
@@ -271,6 +286,7 @@ VITE_IPFS_GATEWAY=https://ipfs.io/ipfs/
 ### Platform-Specific Configuration
 
 #### Electron Configuration
+
 ```typescript
 // quasar.config.ts
 electron: {
@@ -291,6 +307,7 @@ electron: {
 ```
 
 #### Capacitor Configuration
+
 ```typescript
 // src-capacitor/capacitor.config.ts
 ios: {
@@ -308,18 +325,21 @@ android: {
 ## Development Workflow
 
 ### 1. Web Development
+
 ```bash
 # Start web development server
 npm run dev
 ```
 
 ### 2. Desktop Development
+
 ```bash
 # Start Electron development
 npm run electron:dev
 ```
 
 ### 3. Mobile Development
+
 ```bash
 # Start Capacitor development
 npm run capacitor:dev
@@ -335,6 +355,7 @@ npm run capacitor:run:ios
 ### 4. Testing
 
 #### Desktop Testing
+
 ```bash
 # Build for testing
 npm run electron:build
@@ -346,6 +367,7 @@ npm run desktop:build:linux
 ```
 
 #### Mobile Testing
+
 ```bash
 # Build for testing
 npm run mobile:build:android
@@ -361,6 +383,7 @@ npm run capacitor:run:ios
 ### Desktop Deployment
 
 #### 1. Windows
+
 ```bash
 # Build Windows installer
 npm run desktop:build:win
@@ -370,6 +393,7 @@ npm run desktop:build:win
 ```
 
 #### 2. macOS
+
 ```bash
 # Build macOS app
 npm run desktop:build:mac
@@ -379,6 +403,7 @@ npm run desktop:build:mac
 ```
 
 #### 3. Linux
+
 ```bash
 # Build Linux app
 npm run desktop:build:linux
@@ -390,6 +415,7 @@ npm run desktop:build:linux
 ### Mobile Deployment
 
 #### 1. Android
+
 ```bash
 # Build APK
 npm run mobile:build:android
@@ -399,6 +425,7 @@ npm run mobile:build:android
 ```
 
 #### 2. iOS
+
 ```bash
 # Build iOS app
 npm run mobile:build:ios
@@ -410,12 +437,14 @@ npm run mobile:build:ios
 ### App Store Deployment
 
 #### Android (Google Play Store)
+
 1. Build release APK/AAB
 2. Sign with release keystore
 3. Upload to Google Play Console
 4. Submit for review
 
 #### iOS (App Store)
+
 1. Build release IPA
 2. Archive in Xcode
 3. Upload to App Store Connect
@@ -426,6 +455,7 @@ npm run mobile:build:ios
 ### Common Issues
 
 #### Electron Issues
+
 ```bash
 # Clear Electron cache
 rm -rf node_modules/.cache
@@ -439,6 +469,7 @@ npx electron --version
 ```
 
 #### Capacitor Issues
+
 ```bash
 # Clear Capacitor cache
 npx cap clean
@@ -451,6 +482,7 @@ npx cap --version
 ```
 
 #### Build Issues
+
 ```bash
 # Clear all caches
 npm run clean
@@ -464,26 +496,31 @@ npm run build:all
 ### Platform-Specific Issues
 
 #### Windows
+
 - Ensure Windows Build Tools are installed
 - Check antivirus exclusions
 - Verify Node.js version compatibility
 
 #### macOS
+
 - Ensure Xcode Command Line Tools are installed
 - Check code signing certificates
 - Verify macOS version compatibility
 
 #### Linux
+
 - Install required system dependencies
 - Check display server compatibility
 - Verify library dependencies
 
 #### Android
+
 - Ensure Android SDK is properly configured
 - Check JAVA_HOME environment variable
 - Verify Gradle version compatibility
 
 #### iOS
+
 - Ensure Xcode is properly installed
 - Check iOS deployment target
 - Verify code signing setup
@@ -493,18 +530,21 @@ npm run build:all
 ### Desktop Platforms
 
 #### Windows
+
 - **Minimum**: Windows 10 (64-bit)
 - **Architecture**: x64
 - **Dependencies**: Visual C++ Redistributable
 - **Installation**: MSI or EXE installer
 
 #### macOS
+
 - **Minimum**: macOS 10.15 (Catalina)
 - **Architecture**: x64, ARM64 (Apple Silicon)
 - **Dependencies**: None (self-contained)
 - **Installation**: DMG or PKG installer
 
 #### Linux
+
 - **Minimum**: Ubuntu 18.04, CentOS 7
 - **Architecture**: x64
 - **Dependencies**: glibc 2.17+
@@ -513,12 +553,14 @@ npm run build:all
 ### Mobile Platforms
 
 #### Android
+
 - **Minimum**: Android 6.0 (API 23)
 - **Target**: Android 13 (API 33)
 - **Architecture**: ARM64, x86_64
 - **Permissions**: Camera, Storage, Network
 
 #### iOS
+
 - **Minimum**: iOS 13.0
 - **Target**: iOS 16.0
 - **Architecture**: ARM64
@@ -527,12 +569,14 @@ npm run build:all
 ### Performance Considerations
 
 #### Desktop
+
 - **Memory**: 512MB minimum, 2GB recommended
 - **Storage**: 100MB for app, 1GB for data
 - **CPU**: Dual-core minimum
 - **GPU**: Hardware acceleration recommended
 
 #### Mobile
+
 - **Memory**: 2GB minimum, 4GB recommended
 - **Storage**: 50MB for app, 500MB for data
 - **CPU**: Modern ARM processor
@@ -541,12 +585,14 @@ npm run build:all
 ### Security Considerations
 
 #### Desktop
+
 - Code signing for all platforms
 - Auto-updater with signature verification
 - Secure storage for sensitive data
 - Network security for API calls
 
 #### Mobile
+
 - App store code signing
 - Certificate pinning for API calls
 - Secure storage for user data
@@ -555,6 +601,7 @@ npm run build:all
 ## Future Enhancements
 
 ### Planned Features
+
 - [ ] Progressive Web App (PWA) support
 - [ ] Offline-first architecture
 - [ ] Background sync capabilities
@@ -565,6 +612,7 @@ npm run build:all
 - [ ] Accessibility improvements
 
 ### Performance Optimizations
+
 - [ ] Lazy loading for mobile
 - [ ] Image optimization
 - [ ] Bundle size reduction
@@ -572,6 +620,7 @@ npm run build:all
 - [ ] Memory usage optimization
 
 ### Developer Experience
+
 - [ ] Hot reload for mobile
 - [ ] Debug tools integration
 - [ ] Automated testing
@@ -581,16 +630,19 @@ npm run build:all
 ## Resources
 
 ### Official Documentation
+
 - [Quasar Framework](https://quasar.dev/)
 - [Electron Documentation](https://www.electronjs.org/docs)
 - [Capacitor Documentation](https://capacitorjs.com/docs)
 
 ### Community Resources
+
 - [Quasar Community](https://forum.quasar-framework.org/)
 - [Electron Community](https://discord.gg/electron)
 - [Capacitor Community](https://github.com/ionic-team/capacitor/discussions)
 
 ### Development Tools
+
 - [Android Studio](https://developer.android.com/studio)
 - [Xcode](https://developer.apple.com/xcode/)
 - [Visual Studio Code](https://code.visualstudio.com/)
@@ -598,4 +650,4 @@ npm run build:all
 
 ---
 
-This documentation provides a comprehensive guide for building and deploying ProofMintAI across all supported platforms. For specific issues or questions, please refer to the troubleshooting section or consult the official documentation. 
+This documentation provides a comprehensive guide for building and deploying ProofMintAI across all supported platforms. For specific issues or questions, please refer to the troubleshooting section or consult the official documentation.

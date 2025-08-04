@@ -132,4 +132,4 @@ ipcMain.handle('store-set', (_, key, value) => {
 ipcMain.handle('store-delete', (_, key) => {
   store.delete(key);
   return true;
-}); 
+});
