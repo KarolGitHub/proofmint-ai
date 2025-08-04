@@ -10,6 +10,7 @@ const ipfsRoutes = require('./routes/ipfs');
 const ocrRoutes = require('./routes/ocr');
 const hashRoutes = require('./routes/hash');
 const paymentRoutes = require('./routes/payment');
+const reputationRoutes = require('./routes/reputation');
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/ipfs', ipfsRoutes);
 app.use('/ocr', ocrRoutes);
 app.use('/hash', hashRoutes);
 app.use('/payment', paymentRoutes);
+app.use('/reputation', reputationRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

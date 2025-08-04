@@ -9,6 +9,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'history', component: () => import('pages/HistoryPage.vue') },
       { path: 'ai-ocr', component: () => import('pages/AiOcrPage.vue') },
       { path: 'ipfs', component: () => import('pages/IpfsPage.vue') },
+      { path: 'reputation', component: () => import('pages/ReputationPage.vue') },
       { path: 'settings', component: () => import('pages/SettingsPage.vue') },
     ],
   },

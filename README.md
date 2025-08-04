@@ -188,7 +188,7 @@ Contract addresses
 - [x] Mint receipt NFT
 - [x] Encrypted/IPFS storage switches (public & encrypted IPFS with UI)
 - [x] Escrow payment flow (automated, event-driven, persisted)
-- [ ] Wallet reputation/KYC badges
+- [x] Wallet reputation/KYC badges
 - [ ] ZK-proof anonymized verification
 - [ ] Mobile/Desktop builds via Quasar
 

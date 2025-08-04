@@ -33,6 +33,10 @@
           <q-item-section avatar><q-icon name="cloud_upload" /></q-item-section>
           <q-item-section>IPFS Storage</q-item-section>
         </q-item>
+        <q-item clickable to="/reputation">
+          <q-item-section avatar><q-icon name="emoji_events" /></q-item-section>
+          <q-item-section>Reputation & KYC</q-item-section>
+        </q-item>
         <q-item clickable to="/settings">
           <q-item-section avatar><q-icon name="settings" /></q-item-section>
           <q-item-section>Settings</q-item-section>
