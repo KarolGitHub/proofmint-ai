@@ -37,6 +37,10 @@
           <q-item-section avatar><q-icon name="emoji_events" /></q-item-section>
           <q-item-section>Reputation & KYC</q-item-section>
         </q-item>
+        <q-item clickable to="/zkproof">
+          <q-item-section avatar><q-icon name="security" /></q-item-section>
+          <q-item-section>ZK Proofs</q-item-section>
+        </q-item>
         <q-item clickable to="/settings">
           <q-item-section avatar><q-icon name="settings" /></q-item-section>
           <q-item-section>Settings</q-item-section>

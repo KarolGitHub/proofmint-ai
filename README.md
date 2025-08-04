@@ -189,7 +189,7 @@ Contract addresses
 - [x] Encrypted/IPFS storage switches (public & encrypted IPFS with UI)
 - [x] Escrow payment flow (automated, event-driven, persisted)
 - [x] Wallet reputation/KYC badges
-- [ ] ZK-proof anonymized verification
+- [x] ZK-proof anonymized verification
 - [ ] Mobile/Desktop builds via Quasar
 
 ---
