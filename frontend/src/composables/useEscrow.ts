@@ -110,6 +110,75 @@ export function useEscrow() {
     }
   }
 
+  async function mintReceiptEnhanced(params: {
+    to: string;
+    documentHash: string;
+    documentName?: string;
+    imageUrl?: string;
+    description?: string;
+  }) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await api.post('/payment/mint-receipt-enhanced', params);
+      return res.data;
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        // @ts-expect-error: err may have a response property from axios error
+        error.value = err.response?.data?.error || (err as Error).message;
+      } else if (err instanceof Error) {
+        error.value = err.message;
+      } else {
+        error.value = String(err);
+      }
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function getNftsByOwner(owner: string) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await api.get(`/payment/nfts/${owner}`);
+      return res.data.nfts;
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        // @ts-expect-error: err may have a response property from axios error
+        error.value = err.response?.data?.error || (err as Error).message;
+      } else if (err instanceof Error) {
+        error.value = err.message;
+      } else {
+        error.value = String(err);
+      }
+      return [];
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function getNftMetadata(tokenURI: string) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await api.post('/payment/nft-metadata', { tokenURI });
+      return res.data.metadata;
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        // @ts-expect-error: err may have a response property from axios error
+        error.value = err.response?.data?.error || (err as Error).message;
+      } else if (err instanceof Error) {
+        error.value = err.message;
+      } else {
+        error.value = String(err);
+      }
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     loading,
     error,
@@ -118,5 +187,8 @@ export function useEscrow() {
     releaseEscrow,
     refundEscrow,
     mintReceipt,
+    mintReceiptEnhanced,
+    getNftsByOwner,
+    getNftMetadata,
   };
 }

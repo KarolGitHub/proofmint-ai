@@ -201,7 +201,7 @@ const escrowId = ref<string | null>(null);
 const escrowDetails = ref<EscrowDetails | null>(null);
 const escrowLinked = ref(false);
 
-const { loading: escrowLoading, error: escrowError, createEscrow, getEscrow, releaseEscrow: releaseEscrowApi, refundEscrow: refundEscrowApi, mintReceipt } = useEscrow();
+const { loading: escrowLoading, error: escrowError, createEscrow, getEscrow, releaseEscrow: releaseEscrowApi, refundEscrow: refundEscrowApi, mintReceipt, mintReceiptEnhanced } = useEscrow();
 
 const escrowReleaseStatus = ref<string | null>(null);
 const mintedTokenId = ref<string | null>(null);
@@ -316,29 +316,31 @@ async function recordHash() {
           return;
         }
       }
-      // Build metadata
-      const metadata = {
-        name: 'ProofMintAI Notarization Receipt',
-        description: 'NFT receipt for document notarization on ProofMintAI',
+
+      // Use enhanced NFT minting
+      const result = await mintReceiptEnhanced({
+        to: account.value,
         documentHash: fileHash.value,
-        timestamp: Math.floor(Date.now() / 1000),
-        image: imageUrl,
-      };
-      const tokenURI = await uploadMetadataToIpfs(metadata);
-      if (!tokenURI) {
-        error.value = ipfsError.value || 'Failed to upload metadata to IPFS';
-        $q.notify({ type: 'negative', message: error.value, position: 'top' });
-        return;
-      }
-      const tokenId = await mintReceipt(account.value, fileHash.value, tokenURI);
-      if (tokenId) {
-        mintedTokenId.value = tokenId;
+        documentName: lastFileName || 'Document',
+        imageUrl,
+        description: 'NFT receipt for document notarization on ProofMintAI'
+      });
+
+      if (result && result.success) {
+        mintedTokenId.value = result.tokenId;
         showViewGallery.value = true;
-        $q.notify({ type: 'positive', message: 'NFT Minted Successfully!', position: 'top' });
+        $q.notify({
+          type: 'positive',
+          message: `NFT Minted Successfully! Token ID: ${result.tokenId}`,
+          position: 'top'
+        });
         // Reset image and progress
         selectedImage.value = null;
         imagePreviewUrl.value = null;
         ipfsProgress.value = 0;
+      } else {
+        error.value = escrowError.value || 'Failed to mint NFT';
+        $q.notify({ type: 'negative', message: error.value, position: 'top' });
       }
     }
   } catch (e: unknown) {

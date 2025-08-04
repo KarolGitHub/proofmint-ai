@@ -185,7 +185,7 @@ Contract addresses
 - [x] AI document analysis
 - [x] Document hashing & on-chain notarization
 - [x] Wallet payment (MATIC or token escrow)
-- [ ] Mint receipt NFT
+- [x] Mint receipt NFT
 - [x] Encrypted/IPFS storage switches (public & encrypted IPFS with UI)
 - [x] Escrow payment flow (automated, event-driven, persisted)
 - [ ] Wallet reputation/KYC badges

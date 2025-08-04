@@ -14,40 +14,108 @@
         <div>No receipt NFTs found for this address.</div>
         <q-btn color="primary" label="Mint a Receipt NFT" @click="$router.push('/')" class="q-mt-md" />
       </q-banner>
-      <q-card v-for="nft in nfts" :key="nft.tokenId" class="q-mb-md" flat bordered>
-        <q-card-section class="row items-center">
-          <q-img :src="nft.image" :alt="nft.name" style="width: 120px; height: 120px; object-fit: contain;"
-            @error="onImageError($event, nft)">
-            <template #error>
-              <div class="flex flex-center bg-grey-3 text-grey-7" style="width: 100%; height: 100%;">No Image</div>
-            </template>
-          </q-img>
-          <div class="q-ml-md">
-            <div class="text-h6">{{ nft.name }}</div>
-            <div class="text-caption row items-center">
-              Token ID: <span class="q-ml-xs">{{ nft.tokenId }}</span>
-              <q-btn flat dense icon="content_copy" size="sm" @click="copyToClipboard(nft.tokenId, 'Token ID copied!')"
-                aria-label="Copy Token ID" />
+
+      <!-- Enhanced NFT Cards -->
+      <div class="row q-gutter-md">
+        <q-card v-for="nft in nfts" :key="nft.tokenId" class="col-12 col-md-6 col-lg-4" flat bordered>
+          <q-card-section>
+            <!-- NFT Image -->
+            <div class="text-center q-mb-md">
+              <q-img
+                :src="nft.metadata?.image || ''"
+                :alt="nft.metadata?.name || 'NFT'"
+                style="width: 200px; height: 200px; object-fit: contain;"
+                @error="onImageError($event, nft)"
+              >
+                <template #error>
+                  <div class="flex flex-center bg-grey-3 text-grey-7" style="width: 100%; height: 100%;">
+                    <q-icon name="image" size="48px" />
+                  </div>
+                </template>
+              </q-img>
             </div>
-            <div class="q-mt-xs">{{ nft.description }}</div>
-            <div class="q-mt-xs row items-center">
-              <b>Document Hash:</b> <code class="q-ml-xs">{{ nft.documentHash }}</code>
-              <q-btn flat dense icon="content_copy" size="sm"
-                @click="copyToClipboard(nft.documentHash, 'Document hash copied!')" aria-label="Copy Document Hash" />
+
+            <!-- NFT Details -->
+            <div class="text-h6 text-center q-mb-sm">{{ nft.metadata?.name || 'Receipt NFT' }}</div>
+            <div class="text-caption text-center q-mb-md">{{ nft.metadata?.description || '' }}</div>
+
+            <!-- Token Info -->
+            <q-list dense>
+              <q-item>
+                <q-item-section>
+                  <q-item-label caption>Token ID</q-item-label>
+                  <q-item-label class="row items-center">
+                    {{ nft.tokenId }}
+                    <q-btn flat dense icon="content_copy" size="sm"
+                      @click="copyToClipboard(nft.tokenId, 'Token ID copied!')" />
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item>
+                <q-item-section>
+                  <q-item-label caption>Document Hash</q-item-label>
+                  <q-item-label class="row items-center">
+                    <code class="text-caption">{{ nft.documentHash }}</code>
+                    <q-btn flat dense icon="content_copy" size="sm"
+                      @click="copyToClipboard(nft.documentHash, 'Document hash copied!')" />
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item v-if="nft.metadata?.timestamp">
+                <q-item-section>
+                  <q-item-label caption>Notarization Date</q-item-label>
+                  <q-item-label>{{ formatTimestamp(nft.metadata.timestamp) }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+
+            <!-- NFT Attributes -->
+            <div v-if="nft.metadata?.attributes" class="q-mt-md">
+              <div class="text-subtitle2 q-mb-sm">Attributes</div>
+              <div class="row q-gutter-xs">
+                <q-chip
+                  v-for="attr in nft.metadata.attributes"
+                  :key="attr.trait_type"
+                  :label="`${attr.trait_type}: ${attr.value}`"
+                  size="sm"
+                  color="primary"
+                  text-color="white"
+                />
+              </div>
             </div>
-            <div class="q-mt-xs"><b>Timestamp:</b> {{ formatTimestamp(nft.timestamp) }}</div>
-            <div class="q-mt-xs">
-              <a :href="nft.explorerUrl" target="_blank" rel="noopener">View on Explorer</a>
+
+            <!-- Action Buttons -->
+            <div class="q-mt-md">
+              <q-btn
+                flat
+                color="primary"
+                label="View on Explorer"
+                :href="nft.explorerUrl"
+                target="_blank"
+                class="q-mr-sm"
+              />
+              <q-btn
+                flat
+                color="secondary"
+                label="View Metadata"
+                :href="nft.tokenURI"
+                target="_blank"
+                class="q-mr-sm"
+              />
+              <q-btn
+                v-if="nftOpenSeaUrl(nft.tokenId)"
+                flat
+                color="accent"
+                label="OpenSea"
+                :href="nftOpenSeaUrl(nft.tokenId)"
+                target="_blank"
+              />
             </div>
-            <div class="q-mt-xs">
-              <a :href="nft.tokenURI" target="_blank" rel="noopener">View Metadata</a>
-            </div>
-            <div class="q-mt-xs" v-if="nftOpenSeaUrl(nft.tokenId)">
-              <a :href="nftOpenSeaUrl(nft.tokenId)" target="_blank" rel="noopener">View on OpenSea</a>
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
+          </q-card-section>
+        </q-card>
+      </div>
     </div>
   </q-page>
 </template>
@@ -55,26 +123,30 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useWallet } from '@/composables/useWallet';
-import { fetchReceiptNFTs } from '../services/ContractService';
-import { useRoute, useRouter } from 'vue-router';
+import { useEscrow } from '@/composables/useEscrow';
+import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
 
-const { account, connectWallet, provider } = useWallet();
-const nfts = ref<ReceiptNFT[]>([]);
-const loading = ref(false);
-const error = ref<string | null>(null);
+const { account, connectWallet } = useWallet();
+const { getNftsByOwner, loading, error } = useEscrow();
+const nfts = ref<NFTData[]>([]);
 const route = useRoute();
-const router = useRouter();
 const $q = useQuasar();
 
-interface ReceiptNFT {
+interface NFTData {
   tokenId: string;
   tokenURI: string;
-  name: string;
-  description: string;
-  image: string;
   documentHash: string;
-  timestamp: number;
+  metadata: {
+    name?: string;
+    description?: string;
+    image?: string;
+    timestamp?: number;
+    attributes?: Array<{
+      trait_type: string;
+      value: string;
+    }>;
+  } | null;
   explorerUrl: string;
 }
 
@@ -85,16 +157,16 @@ function formatTimestamp(ts: number) {
 }
 
 async function fetchGallery() {
-  if (!account.value || !provider.value) return;
-  loading.value = true;
-  error.value = null;
-  nfts.value = [];
+  if (!account.value) return;
+
   try {
-    nfts.value = await fetchReceiptNFTs(account.value, provider.value);
+    const nftData = await getNftsByOwner(account.value);
+    nfts.value = nftData.map((nft: any) => ({
+      ...nft,
+      explorerUrl: `https://www.oklink.com/amoy/token/${import.meta.env.VITE_RECEIPT_NFT_ADDRESS}?a=${nft.tokenId}`
+    }));
   } catch (e: any) {
-    error.value = e.message || 'Failed to fetch NFTs';
-  } finally {
-    loading.value = false;
+    console.error('Failed to fetch NFTs:', e);
   }
 }
 
@@ -103,14 +175,13 @@ function copyToClipboard(text: string, message: string) {
   $q.notify({ type: 'positive', message, position: 'top' });
 }
 
-function onImageError(event: Event, nft: ReceiptNFT) {
+function onImageError(event: Event, nft: NFTData) {
   // Optionally log or handle image load errors
   (event.target as HTMLImageElement).src = '';
 }
 
 function nftOpenSeaUrl(tokenId: string) {
   // Only show for Polygon mainnet or testnets supported by OpenSea
-  // Example for Mumbai: https://testnets.opensea.io/assets/mumbai/<contract>/<tokenId>
   const contract = import.meta.env.VITE_RECEIPT_NFT_ADDRESS;
   if (!contract) return '';
   // You can adjust this for your network
@@ -123,3 +194,12 @@ watch([account, route], () => {
   if (account.value) void fetchGallery();
 });
 </script>
+
+<style scoped>
+code {
+  font-family: 'Courier New', monospace;
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+</style>

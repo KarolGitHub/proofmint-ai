@@ -247,4 +247,168 @@ router.post('/mint-receipt', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /payment/mint-receipt-enhanced:
+ *   post:
+ *     summary: Mint a receipt NFT with enhanced metadata
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - to
+ *               - documentHash
+ *             properties:
+ *               to:
+ *                 type: string
+ *                 description: Recipient address
+ *               documentHash:
+ *                 type: string
+ *                 description: Document hash (bytes32)
+ *               documentName:
+ *                 type: string
+ *                 description: Name of the document
+ *               imageUrl:
+ *                 type: string
+ *                 description: Optional image URL for the NFT
+ *               description:
+ *                 type: string
+ *                 description: Custom description for the NFT
+ *     responses:
+ *       200:
+ *         description: NFT minted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 tokenId:
+ *                   type: string
+ *                 tokenURI:
+ *                   type: string
+ *                 metadata:
+ *                   type: object
+ *                 transactionHash:
+ *                   type: string
+ */
+router.post('/mint-receipt-enhanced', async (req, res) => {
+  try {
+    const { to, documentHash, documentName, imageUrl, description } = req.body;
+    if (!to || !documentHash) {
+      return res
+        .status(400)
+        .json({ error: 'to and documentHash are required' });
+    }
+
+    const result = await receiptNftService.mintReceiptWithMetadata(
+      to,
+      documentHash,
+      {
+        documentName,
+        imageUrl,
+        description,
+      }
+    );
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /payment/nfts/{owner}:
+ *   get:
+ *     summary: Get all NFTs owned by an address
+ *     parameters:
+ *       - in: path
+ *         name: owner
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Owner address
+ *     responses:
+ *       200:
+ *         description: NFTs retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 nfts:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       tokenId:
+ *                         type: string
+ *                       tokenURI:
+ *                         type: string
+ *                       documentHash:
+ *                         type: string
+ *                       metadata:
+ *                         type: object
+ */
+router.get('/nfts/:owner', async (req, res) => {
+  try {
+    const { owner } = req.params;
+    if (!owner) {
+      return res.status(400).json({ error: 'Owner address is required' });
+    }
+
+    const nfts = await receiptNftService.getNftsByOwner(owner);
+    res.json({ nfts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /payment/nft-metadata:
+ *   post:
+ *     summary: Get NFT metadata from IPFS
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - tokenURI
+ *             properties:
+ *               tokenURI:
+ *                 type: string
+ *                 description: Token metadata URI
+ *     responses:
+ *       200:
+ *         description: Metadata retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 metadata:
+ *                   type: object
+ */
+router.post('/nft-metadata', async (req, res) => {
+  try {
+    const { tokenURI } = req.body;
+    if (!tokenURI) {
+      return res.status(400).json({ error: 'tokenURI is required' });
+    }
+
+    const metadata = await receiptNftService.getNftMetadata(tokenURI);
+    res.json({ metadata });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
