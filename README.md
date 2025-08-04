@@ -190,7 +190,7 @@ Contract addresses
 - [x] Escrow payment flow (automated, event-driven, persisted)
 - [x] Wallet reputation/KYC badges
 - [x] ZK-proof anonymized verification
-- [ ] Mobile/Desktop builds via Quasar
+- [x] Mobile/Desktop builds via Quasar
 
 ---
 
