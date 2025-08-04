@@ -29,6 +29,10 @@
           <q-item-section avatar><q-icon name="psychology" /></q-item-section>
           <q-item-section>AI / OCR</q-item-section>
         </q-item>
+        <q-item clickable to="/ipfs">
+          <q-item-section avatar><q-icon name="cloud_upload" /></q-item-section>
+          <q-item-section>IPFS Storage</q-item-section>
+        </q-item>
         <q-item clickable to="/settings">
           <q-item-section avatar><q-icon name="settings" /></q-item-section>
           <q-item-section>Settings</q-item-section>
