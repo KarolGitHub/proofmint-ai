@@ -22,6 +22,11 @@ let isListening = false;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 10000; // 10 seconds
+const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
+const EVENT_TIMEOUT = 60000; // 1 minute - if no events for this long, reconnect
+let healthCheckTimer = null;
+let eventTimeoutTimer = null;
+let lastEventTime = Date.now();
 
 const MAPPING_FILE = path.join(__dirname, 'escrowMapping.json');
 let docHashToEscrowId = new Map();
@@ -124,6 +129,10 @@ function setupEventListener() {
         `DocumentHashRecorded event: ${documentHash} by ${recorder} at ${timestamp}`
       );
 
+      // Update last event time
+      lastEventTime = Date.now();
+      resetEventTimeout(); // Reset timeout on new event
+
       const escrowId = docHashToEscrowId.get(documentHash);
       if (escrowId !== undefined) {
         try {
@@ -148,15 +157,17 @@ function setupEventListener() {
     // Attach listener
     notary.on('DocumentHashRecorded', eventListener);
 
-    // Add error handling for the event listener
-    notary.on('error', (error) => {
-      console.error('Event listener error:', error);
-      handleEventListenerError(error);
-    });
+    // Note: In ethers.js v6, we can't listen to provider 'error' or 'disconnect' events
+    // Instead, we'll rely on the health check and error handling in the event listener itself
 
     isListening = true;
     reconnectAttempts = 0; // Reset reconnect attempts on successful setup
     console.log('Event listener setup successfully');
+
+    // Start health check
+    startHealthCheck();
+    startEventTimeout(); // Start event timeout monitoring
+
     return true;
   } catch (error) {
     console.error('Failed to setup event listener:', error);
@@ -175,6 +186,24 @@ function handleEventListenerError(error) {
     error.error.message === 'filter not found'
   ) {
     console.log('Filter expired, attempting to reconnect...');
+    scheduleReconnect();
+  }
+  // Check for other common RPC errors
+  else if (
+    error.code === 'UNKNOWN_ERROR' ||
+    error.code === 'NETWORK_ERROR' ||
+    error.code === 'TIMEOUT'
+  ) {
+    console.log('Network/RPC error detected, attempting to reconnect...');
+    scheduleReconnect();
+  }
+  // Check for provider disconnection
+  else if (
+    error.code === 'DISCONNECTED' ||
+    error.message?.includes('disconnected') ||
+    error.message?.includes('connection lost')
+  ) {
+    console.log('Provider disconnected, attempting to reconnect...');
     scheduleReconnect();
   } else {
     console.error('Unknown event listener error, attempting to reconnect...');
@@ -217,6 +246,10 @@ function reconnect() {
 
     isListening = false;
 
+    // Stop health check and event timeout during reconnection
+    stopHealthCheck();
+    stopEventTimeout();
+
     // Reinitialize contracts if needed
     if (!notary || !escrow) {
       if (!initializeContracts()) {
@@ -236,6 +269,55 @@ function reconnect() {
   }
 }
 
+// Test if event listener is working by querying past events
+async function testEventListener() {
+  if (!notary || !provider) {
+    return { working: false, error: 'Contracts not initialized' };
+  }
+
+  try {
+    // Try to get the latest block number to test basic connectivity
+    const blockNumber = await provider.getBlockNumber();
+
+    // Try to query a recent event to see if the listener can access events
+    const currentBlock = blockNumber;
+    const fromBlock = Math.max(0, currentBlock - 100); // Look back 100 blocks
+
+    const events = await notary.queryFilter(
+      'DocumentHashRecorded',
+      fromBlock,
+      currentBlock
+    );
+
+    return {
+      working: true,
+      latestBlock: blockNumber,
+      recentEvents: events.length,
+      lastEventTime: new Date(lastEventTime).toISOString(),
+    };
+  } catch (error) {
+    return { working: false, error: error.message };
+  }
+}
+
+// Test provider connection
+async function testProviderConnection() {
+  if (!provider) {
+    return { connected: false, error: 'Provider not initialized' };
+  }
+
+  try {
+    const network = await provider.getNetwork();
+    return {
+      connected: true,
+      network: network.name || network.chainId,
+      blockNumber: await provider.getBlockNumber(),
+    };
+  } catch (error) {
+    return { connected: false, error: error.message };
+  }
+}
+
 // Health check function
 function getListenerStatus() {
   return {
@@ -244,7 +326,80 @@ function getListenerStatus() {
     maxReconnectAttempts: MAX_RECONNECT_ATTEMPTS,
     contractsInitialized: !!(notary && escrow),
     mappingSize: docHashToEscrowId.size,
+    healthCheck: {
+      active: !!healthCheckTimer,
+      lastEventTime: new Date(lastEventTime).toISOString(),
+      timeSinceLastEvent: Date.now() - lastEventTime,
+    },
   };
+}
+
+// Start event timeout monitoring
+function startEventTimeout() {
+  if (eventTimeoutTimer) {
+    clearTimeout(eventTimeoutTimer);
+  }
+
+  eventTimeoutTimer = setTimeout(() => {
+    if (isListening) {
+      console.log(
+        `Event timeout: No events received for ${
+          EVENT_TIMEOUT / 1000
+        }s, triggering reconnection...`
+      );
+      scheduleReconnect();
+    }
+  }, EVENT_TIMEOUT);
+}
+
+// Stop event timeout monitoring
+function stopEventTimeout() {
+  if (eventTimeoutTimer) {
+    clearTimeout(eventTimeoutTimer);
+    eventTimeoutTimer = null;
+  }
+}
+
+// Reset event timeout (call this when events are received)
+function resetEventTimeout() {
+  if (isListening) {
+    startEventTimeout();
+  }
+}
+
+// Periodic health check to detect filter expiration
+function startHealthCheck() {
+  if (healthCheckTimer) {
+    clearInterval(healthCheckTimer);
+  }
+
+  healthCheckTimer = setInterval(async () => {
+    if (!isListening || !provider) {
+      return;
+    }
+
+    try {
+      // Simple connectivity test
+      const network = await provider.getNetwork();
+      console.log(
+        `Health check: Connected to ${network.name || network.chainId}`
+      );
+    } catch (error) {
+      console.log(
+        'Health check: Provider connection failed, triggering reconnection:',
+        error.message
+      );
+      scheduleReconnect();
+    }
+  }, HEALTH_CHECK_INTERVAL);
+}
+
+// Stop health check
+function stopHealthCheck() {
+  if (healthCheckTimer) {
+    clearInterval(healthCheckTimer);
+    healthCheckTimer = null;
+  }
 }
 
 // Graceful shutdown
@@ -258,6 +413,8 @@ function shutdown() {
 
   isListening = false;
   console.log('Event listener shutdown complete');
+  stopHealthCheck(); // Stop health check on shutdown
+  stopEventTimeout(); // Stop event timeout on shutdown
 }
 
 // Initialize everything
@@ -274,4 +431,6 @@ module.exports = {
   getListenerStatus,
   reconnect,
   shutdown,
+  testProviderConnection,
+  testEventListener,
 };

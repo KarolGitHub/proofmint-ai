@@ -14,7 +14,12 @@ const reputationRoutes = require('./routes/reputation');
 const zkProofRoutes = require('./routes/zkproof');
 
 // Import notary listener for health check
-const { getListenerStatus, reconnect } = require('./services/notaryListener');
+const {
+  getListenerStatus,
+  reconnect,
+  testProviderConnection,
+  testEventListener,
+} = require('./services/notaryListener');
 
 const app = express();
 
@@ -55,13 +60,16 @@ app.get('/', (req, res) => {
 });
 
 // Health check endpoint for event listener
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
   try {
     const listenerStatus = getListenerStatus();
+    const providerStatus = await testProviderConnection();
+
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
       eventListener: listenerStatus,
+      provider: providerStatus,
       environment: {
         notaryAddress: process.env.NOTARY_CONTRACT_ADDRESS
           ? 'configured'
@@ -76,6 +84,38 @@ app.get('/health', (req, res) => {
   } catch (error) {
     res.status(500).json({
       status: 'error',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
+});
+
+// Provider connection test endpoint
+app.get('/test-provider', async (req, res) => {
+  try {
+    const providerStatus = await testProviderConnection();
+    res.json({
+      timestamp: new Date().toISOString(),
+      ...providerStatus,
+    });
+  } catch (error) {
+    res.status(500).json({
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
+});
+
+// Event listener test endpoint
+app.get('/test-listener', async (req, res) => {
+  try {
+    const listenerStatus = await testEventListener();
+    res.json({
+      timestamp: new Date().toISOString(),
+      ...listenerStatus,
+    });
+  } catch (error) {
+    res.status(500).json({
       timestamp: new Date().toISOString(),
       error: error.message,
     });
