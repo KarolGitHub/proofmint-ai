@@ -24,8 +24,10 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 10000; // 10 seconds
 const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 const EVENT_TIMEOUT = 60000; // 1 minute - if no events for this long, reconnect
+const FILTER_REFRESH_INTERVAL = 300000; // 5 minutes - refresh filter to prevent staleness
 let healthCheckTimer = null;
 let eventTimeoutTimer = null;
+let filterRefreshTimer = null;
 let lastEventTime = Date.now();
 
 const MAPPING_FILE = path.join(__dirname, 'escrowMapping.json');
@@ -58,6 +60,12 @@ function saveMapping() {
 function registerEscrow(documentHash, escrowId) {
   docHashToEscrowId.set(documentHash, escrowId);
   saveMapping();
+
+  // Start event listener if this is the first escrow
+  if (docHashToEscrowId.size === 1 && !isListening) {
+    console.log('First escrow registered, starting event listener');
+    setupEventListener();
+  }
 }
 
 // Initialize contracts and provider
@@ -125,32 +133,44 @@ function setupEventListener() {
 
     // Create new event listener
     eventListener = async (documentHash, recorder, timestamp) => {
-      console.log(
-        `DocumentHashRecorded event: ${documentHash} by ${recorder} at ${timestamp}`
-      );
+      try {
+        console.log(
+          `DocumentHashRecorded event: ${documentHash} by ${recorder} at ${timestamp}`
+        );
 
-      // Update last event time
-      lastEventTime = Date.now();
-      resetEventTimeout(); // Reset timeout on new event
+        // Update last event time
+        lastEventTime = Date.now();
+        resetEventTimeout(); // Reset timeout on new event
 
-      const escrowId = docHashToEscrowId.get(documentHash);
-      if (escrowId !== undefined) {
-        try {
-          console.log(
-            `Processing escrow ${escrowId} for document ${documentHash}`
-          );
-          const tx = await escrow.releaseEscrow(escrowId);
-          await tx.wait();
-          console.log(
-            `Escrow ${escrowId} released for document hash ${documentHash}`
-          );
-          docHashToEscrowId.delete(documentHash); // Clean up
-          saveMapping();
-        } catch (err) {
-          console.error('Failed to release escrow:', err);
+        const escrowId = docHashToEscrowId.get(documentHash);
+        if (escrowId !== undefined) {
+          try {
+            console.log(
+              `Processing escrow ${escrowId} for document ${documentHash}`
+            );
+            const tx = await escrow.releaseEscrow(escrowId);
+            await tx.wait();
+            console.log(
+              `Escrow ${escrowId} released for document hash ${documentHash}`
+            );
+            docHashToEscrowId.delete(documentHash); // Clean up
+            saveMapping();
+
+            // Stop event listener if no more escrows to monitor
+            if (docHashToEscrowId.size === 0 && isListening) {
+              console.log('All escrows processed, stopping event listener');
+              stopEventListener();
+            }
+          } catch (err) {
+            console.error('Failed to release escrow:', err);
+          }
+        } else {
+          console.log(`No escrow found for document hash ${documentHash}`);
         }
-      } else {
-        console.log(`No escrow found for document hash ${documentHash}`);
+      } catch (error) {
+        // Handle any errors in the event listener itself
+        console.error('Event listener error:', error);
+        handleEventListenerError(error);
       }
     };
 
@@ -167,6 +187,7 @@ function setupEventListener() {
     // Start health check
     startHealthCheck();
     startEventTimeout(); // Start event timeout monitoring
+    startFilterRefresh(); // Start filter refresh to prevent staleness
 
     return true;
   } catch (error) {
@@ -249,6 +270,7 @@ function reconnect() {
     // Stop health check and event timeout during reconnection
     stopHealthCheck();
     stopEventTimeout();
+    stopFilterRefresh();
 
     // Reinitialize contracts if needed
     if (!notary || !escrow) {
@@ -402,6 +424,58 @@ function stopHealthCheck() {
   }
 }
 
+// Start filter refresh to prevent staleness
+function startFilterRefresh() {
+  if (filterRefreshTimer) {
+    clearInterval(filterRefreshTimer);
+  }
+
+  filterRefreshTimer = setInterval(async () => {
+    if (!isListening || !notary || !eventListener) {
+      return;
+    }
+
+    try {
+      console.log('Refreshing event filter to prevent staleness...');
+
+      // Remove old listener
+      notary.off('DocumentHashRecorded', eventListener);
+
+      // Reattach listener (this creates a fresh filter)
+      notary.on('DocumentHashRecorded', eventListener);
+
+      console.log('Event filter refreshed successfully');
+    } catch (error) {
+      console.error('Failed to refresh filter:', error);
+      // If filter refresh fails, trigger reconnection
+      scheduleReconnect();
+    }
+  }, FILTER_REFRESH_INTERVAL);
+}
+
+// Stop filter refresh
+function stopFilterRefresh() {
+  if (filterRefreshTimer) {
+    clearInterval(filterRefreshTimer);
+    filterRefreshTimer = null;
+  }
+}
+
+// Stop event listener
+function stopEventListener() {
+  if (eventListener && notary) {
+    notary.off('DocumentHashRecorded', eventListener);
+    eventListener = null;
+  }
+
+  isListening = false;
+  stopHealthCheck();
+  stopEventTimeout();
+  stopFilterRefresh();
+
+  console.log('Event listener stopped');
+}
+
 // Graceful shutdown
 function shutdown() {
   console.log('Shutting down event listener...');
@@ -415,11 +489,20 @@ function shutdown() {
   console.log('Event listener shutdown complete');
   stopHealthCheck(); // Stop health check on shutdown
   stopEventTimeout(); // Stop event timeout on shutdown
+  stopFilterRefresh(); // Stop filter refresh on shutdown
 }
 
 // Initialize everything
 if (initializeContracts()) {
-  setupEventListener();
+  // Only setup event listener if there are escrows to monitor
+  if (docHashToEscrowId.size > 0) {
+    console.log(
+      `Found ${docHashToEscrowId.size} escrows to monitor, setting up event listener`
+    );
+    setupEventListener();
+  } else {
+    console.log('No escrows to monitor, event listener not needed');
+  }
 }
 
 // Handle process termination
@@ -433,4 +516,5 @@ module.exports = {
   shutdown,
   testProviderConnection,
   testEventListener,
+  stopEventListener,
 };
