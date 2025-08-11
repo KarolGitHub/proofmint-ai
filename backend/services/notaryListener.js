@@ -4,18 +4,27 @@ const path = require('path');
 require('dotenv').config();
 
 const NOTARY_ADDRESS = process.env.NOTARY_CONTRACT_ADDRESS;
-const NOTARY_ABI = require('../contracts/Notary.json').abi;
+const NOTARY_ABI =
+  require('../../contracts/artifacts/contracts/Notary.sol/Notary.json').abi;
 const PAYMENT_ESCROW_ADDRESS = process.env.PAYMENT_ESCROW_ADDRESS;
-const PAYMENT_ESCROW_ABI = require('../contracts/PaymentEscrow.json').abi;
-const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+const PAYMENT_ESCROW_ABI =
+  require('../../contracts/artifacts/contracts/PaymentEscrow.sol/PaymentEscrow.json').abi;
 
-const notary = new ethers.Contract(NOTARY_ADDRESS, NOTARY_ABI, provider);
-const escrow = new ethers.Contract(
-  PAYMENT_ESCROW_ADDRESS,
-  PAYMENT_ESCROW_ABI,
-  wallet
-);
+// Initialize contracts only if addresses are provided
+let notary = null;
+let escrow = null;
+
+if (NOTARY_ADDRESS && PAYMENT_ESCROW_ADDRESS) {
+  const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
+  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+
+  notary = new ethers.Contract(NOTARY_ADDRESS, NOTARY_ABI, provider);
+  escrow = new ethers.Contract(
+    PAYMENT_ESCROW_ADDRESS,
+    PAYMENT_ESCROW_ABI,
+    wallet
+  );
+}
 
 const MAPPING_FILE = path.join(__dirname, 'escrowMapping.json');
 let docHashToEscrowId = new Map();
@@ -50,21 +59,26 @@ function registerEscrow(documentHash, escrowId) {
 }
 
 // Listen for DocumentHashRecorded events
-notary.on('DocumentHashRecorded', async (documentHash, recorder, timestamp) => {
-  const escrowId = docHashToEscrowId.get(documentHash);
-  if (escrowId !== undefined) {
-    try {
-      const tx = await escrow.releaseEscrow(escrowId);
-      await tx.wait();
-      console.log(
-        `Escrow ${escrowId} released for document hash ${documentHash}`
-      );
-      docHashToEscrowId.delete(documentHash); // Clean up
-      saveMapping();
-    } catch (err) {
-      console.error('Failed to release escrow:', err);
+if (notary && escrow) {
+  notary.on(
+    'DocumentHashRecorded',
+    async (documentHash, recorder, timestamp) => {
+      const escrowId = docHashToEscrowId.get(documentHash);
+      if (escrowId !== undefined) {
+        try {
+          const tx = await escrow.releaseEscrow(escrowId);
+          await tx.wait();
+          console.log(
+            `Escrow ${escrowId} released for document hash ${documentHash}`
+          );
+          docHashToEscrowId.delete(documentHash); // Clean up
+          saveMapping();
+        } catch (err) {
+          console.error('Failed to release escrow:', err);
+        }
+      }
     }
-  }
-});
+  );
+}
 
 module.exports = { registerEscrow };

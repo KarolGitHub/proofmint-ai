@@ -180,6 +180,19 @@ Contract addresses
 
 ---
 
+## 📚 Documentation
+
+For comprehensive documentation on all features, components, and implementation details, see the **[📖 Documentation Hub](./docs/README.md)**.
+
+The documentation includes:
+
+- **Core Features**: AI analysis, blockchain notarization, IPFS storage, NFT system
+- **Advanced Features**: Reputation badges, ZK-proofs, cross-platform builds
+- **UI Components**: Enhanced interfaces, payment systems, dashboard
+- **Development**: Setup guides, API references, troubleshooting
+
+---
+
 🔮 Roadmap
 
 - [x] AI document analysis
@@ -191,14 +204,7 @@ Contract addresses
 - [x] Wallet reputation/KYC badges
 - [x] ZK-proof anonymized verification
 - [x] Mobile/Desktop builds via Quasar
-
----
-
-📷 UI Preview (Coming Soon)
-
-1. Fully interactive upload+processing page
-2. Wallet pay button + NFT receipt badge
-3. Notary proof explorer dashboard
+- [x] UI Preview functionalities (enhanced upload+processing, wallet pay button + NFT receipt badge, notary proof explorer dashboard)
 
 ---
 

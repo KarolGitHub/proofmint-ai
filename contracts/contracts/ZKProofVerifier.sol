@@ -217,7 +217,7 @@ contract ZKProofVerifier is Ownable {
      * @param nullifier The nullifier to check
      * @return used Whether the nullifier has been used
      */
-    function nullifierUsed(bytes32 nullifier) external view returns (bool used) {
+    function isNullifierUsed(bytes32 nullifier) external view returns (bool used) {
         return nullifierUsed[nullifier];
     }
 

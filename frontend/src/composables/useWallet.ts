@@ -25,11 +25,20 @@ export function useWallet() {
     }
   }
 
+  // Disconnect wallet
+  function disconnectWallet() {
+    account.value = null;
+    provider.value = null;
+    signer.value = null;
+    notaryContract.value = null;
+  }
+
   return {
     account,
     provider,
     signer,
     notaryContract,
     connectWallet,
+    disconnectWallet,
   };
 }

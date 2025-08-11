@@ -2,15 +2,29 @@ const { ethers } = require('ethers');
 require('dotenv').config();
 
 const REPUTATION_BADGE_ADDRESS = process.env.REPUTATION_BADGE_ADDRESS;
-const REPUTATION_BADGE_ABI = require('../contracts/ReputationBadge.json').abi;
+const REPUTATION_BADGE_ABI =
+  require('../../contracts/artifacts/contracts/ReputationBadge.sol/ReputationBadge.json').abi;
 
-const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-const reputationContract = new ethers.Contract(
-  REPUTATION_BADGE_ADDRESS,
-  REPUTATION_BADGE_ABI,
-  wallet
-);
+// Initialize contract only if address is provided
+let reputationContract = null;
+if (REPUTATION_BADGE_ADDRESS) {
+  const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
+  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+  reputationContract = new ethers.Contract(
+    REPUTATION_BADGE_ADDRESS,
+    REPUTATION_BADGE_ABI,
+    wallet
+  );
+}
+
+// Helper function to check if contract is initialized
+function checkContractInitialized() {
+  if (!reputationContract) {
+    throw new Error(
+      'Reputation contract not initialized. Please set REPUTATION_BADGE_ADDRESS environment variable.'
+    );
+  }
+}
 
 // Badge types mapping
 const BADGE_TYPES = {
@@ -46,6 +60,8 @@ async function issueBadge(
   expiresAt = 0,
   metadata = ''
 ) {
+  checkContractInitialized();
+
   try {
     const tx = await reputationContract.issueBadge(
       recipient,
@@ -91,6 +107,8 @@ async function issueBadge(
  * @returns {Promise<Object>} Revocation result
  */
 async function revokeBadge(tokenId) {
+  checkContractInitialized();
+
   try {
     const tx = await reputationContract.revokeBadge(tokenId);
     const receipt = await tx.wait();
@@ -113,6 +131,8 @@ async function revokeBadge(tokenId) {
  * @returns {Promise<Object>} Update result
  */
 async function updateReputation(user, newScore) {
+  checkContractInitialized();
+
   try {
     const tx = await reputationContract.updateReputation(user, newScore);
     const receipt = await tx.wait();
@@ -135,6 +155,8 @@ async function updateReputation(user, newScore) {
  * @returns {Promise<Object>} KYC verification result
  */
 async function verifyKYC(user) {
+  checkContractInitialized();
+
   try {
     const tx = await reputationContract.verifyKYC(user);
     const receipt = await tx.wait();
@@ -157,6 +179,8 @@ async function verifyKYC(user) {
  * @returns {Promise<number>} Reputation score
  */
 async function getReputationScore(user) {
+  checkContractInitialized();
+
   try {
     const score = await reputationContract.getReputationScore(user);
     return score.toString();
@@ -172,6 +196,8 @@ async function getReputationScore(user) {
  * @returns {Promise<boolean>} KYC verification status
  */
 async function isKYCVerified(user) {
+  checkContractInitialized();
+
   try {
     const verified = await reputationContract.isKYCVerified(user);
     return verified;
@@ -187,6 +213,8 @@ async function isKYCVerified(user) {
  * @returns {Promise<number>} KYC verification timestamp
  */
 async function getKYCVerifiedAt(user) {
+  checkContractInitialized();
+
   try {
     const timestamp = await reputationContract.getKYCVerifiedAt(user);
     return timestamp.toString();
@@ -202,6 +230,8 @@ async function getKYCVerifiedAt(user) {
  * @returns {Promise<Array>} Array of badge token IDs
  */
 async function getUserBadges(user) {
+  checkContractInitialized();
+
   try {
     const badges = await reputationContract.getUserBadges(user);
     return badges.map((id) => id.toString());
@@ -217,6 +247,8 @@ async function getUserBadges(user) {
  * @returns {Promise<Array>} Array of active badge token IDs
  */
 async function getActiveBadges(user) {
+  checkContractInitialized();
+
   try {
     const badges = await reputationContract.getActiveBadges(user);
     return badges.map((id) => id.toString());
@@ -233,6 +265,8 @@ async function getActiveBadges(user) {
  * @returns {Promise<boolean>} Whether user has the badge
  */
 async function hasBadge(user, badgeType) {
+  checkContractInitialized();
+
   try {
     const hasBadge = await reputationContract.hasBadge(user, badgeType);
     return hasBadge;
@@ -248,6 +282,8 @@ async function hasBadge(user, badgeType) {
  * @returns {Promise<Object>} Badge details
  */
 async function getBadge(tokenId) {
+  checkContractInitialized();
+
   try {
     const badge = await reputationContract.getBadge(tokenId);
     return {
@@ -270,6 +306,8 @@ async function getBadge(tokenId) {
  * @returns {Promise<boolean>} Whether badge is active
  */
 async function isBadgeActive(tokenId) {
+  checkContractInitialized();
+
   try {
     const isActive = await reputationContract.isBadgeActive(tokenId);
     return isActive;
@@ -285,6 +323,8 @@ async function isBadgeActive(tokenId) {
  * @returns {Promise<number>} Required reputation score
  */
 async function getBadgeRequirements(badgeType) {
+  checkContractInitialized();
+
   try {
     const requirements = await reputationContract.getBadgeRequirements(
       badgeType

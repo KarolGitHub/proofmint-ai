@@ -3,18 +3,32 @@ require('dotenv').config();
 const { create } = require('@web3-storage/w3up-client');
 
 const RECEIPT_NFT_ADDRESS = process.env.RECEIPT_NFT_ADDRESS;
-const RECEIPT_NFT_ABI = require('../contracts/ReceiptNFT.json').abi;
+const RECEIPT_NFT_ABI =
+  require('../../contracts/artifacts/contracts/ReceiptNFT.sol/ReceiptNFT.json').abi;
 
-const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-const receiptNftContract = new ethers.Contract(
-  RECEIPT_NFT_ADDRESS,
-  RECEIPT_NFT_ABI,
-  wallet
-);
+// Initialize contract only if address is provided
+let receiptNftContract = null;
+if (RECEIPT_NFT_ADDRESS) {
+  const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
+  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+  receiptNftContract = new ethers.Contract(
+    RECEIPT_NFT_ADDRESS,
+    RECEIPT_NFT_ABI,
+    wallet
+  );
+}
 
 const W3UP_TOKEN = process.env.W3UP_TOKEN;
 const W3UP_SPACE_DID = process.env.W3UP_SPACE_DID;
+
+// Helper function to check if contract is initialized
+function checkContractInitialized() {
+  if (!receiptNftContract) {
+    throw new Error(
+      'Receipt NFT contract not initialized. Please set RECEIPT_NFT_ADDRESS environment variable.'
+    );
+  }
+}
 
 /**
  * Upload metadata to IPFS using web3.storage
@@ -95,6 +109,8 @@ async function createNftMetadata({
  * @returns {Promise<Object>} Mint result with tokenId and metadata
  */
 async function mintReceiptWithMetadata(to, documentHash, metadataParams) {
+  checkContractInitialized();
+
   try {
     // Create metadata
     const metadata = await createNftMetadata({
@@ -148,6 +164,8 @@ async function mintReceiptWithMetadata(to, documentHash, metadataParams) {
  * @returns {Promise<string>} Token ID
  */
 async function mintReceipt(to, documentHash, tokenURI) {
+  checkContractInitialized();
+
   try {
     const tx = await receiptNftContract.mintReceipt(to, documentHash, tokenURI);
     const receipt = await tx.wait();
@@ -194,6 +212,8 @@ async function getNftMetadata(tokenURI) {
  * @returns {Promise<Array>} Array of NFT data
  */
 async function getNftsByOwner(owner) {
+  checkContractInitialized();
+
   try {
     const balance = await receiptNftContract.balanceOf(owner);
     const nfts = [];
