@@ -8,6 +8,7 @@ const routes: RouteRecordRaw[] = [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'history', component: () => import('pages/HistoryPage.vue') },
       { path: 'ai-ocr', component: () => import('pages/AiOcrPage.vue') },
+      { path: 'ai-dashboard', component: () => import('pages/AiDashboardPage.vue') },
       { path: 'ipfs', component: () => import('pages/IpfsPage.vue') },
       { path: 'reputation', component: () => import('pages/ReputationPage.vue') },
       { path: 'zkproof', component: () => import('pages/ZKProofPage.vue') },
