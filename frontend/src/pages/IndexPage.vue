@@ -35,17 +35,8 @@
           <div class="text-h6 q-mb-md">📄 Document Upload & Processing</div>
 
           <!-- Drag & Drop File Upload -->
-          <q-file
-            v-model="selectedFile"
-            label="Choose document to notarize"
-            outlined
-            accept="*/*"
-            class="q-mb-md"
-            @update:model-value="onFileChange"
-            use-chips
-            counter
-            max-files="1"
-          >
+          <q-file v-model="selectedFile" label="Choose document to notarize" outlined accept="*/*" class="q-mb-md"
+            @update:model-value="onFileChange" use-chips counter max-files="1">
             <template v-slot:prepend>
               <q-icon name="upload_file" />
             </template>
@@ -76,13 +67,7 @@
             <q-card class="bg-blue-1">
               <q-card-section>
                 <div class="text-subtitle2 q-mb-sm">📋 Document Hash (SHA-256)</div>
-                <q-input
-                  :model-value="fileHash"
-                  readonly
-                  outlined
-                  class="q-mb-sm"
-                  bg-color="white"
-                >
+                <q-input :model-value="fileHash" readonly outlined class="q-mb-sm" bg-color="white">
                   <template v-slot:append>
                     <q-btn flat round icon="content_copy" @click="copyToClipboard(fileHash)" />
                   </template>
@@ -94,14 +79,8 @@
 
           <!-- Escrow Creation -->
           <div v-if="fileHash && !escrowLinked" class="q-mb-md">
-            <WalletPayButton
-              :document-hash="fileHash"
-              :document-name="lastFileName || 'Document'"
-              :auto-process="true"
-              @payment-success="onPaymentSuccess"
-              @payment-error="onPaymentError"
-              @nft-minted="onNftMinted"
-            />
+            <WalletPayButton :document-hash="fileHash" :document-name="lastFileName || 'Document'" :auto-process="true"
+              @payment-success="onPaymentSuccess" @payment-error="onPaymentError" @nft-minted="onNftMinted" />
           </div>
 
           <!-- Escrow Status -->
@@ -113,30 +92,16 @@
                   <div class="text-subtitle2">Escrow Created Successfully</div>
                 </div>
                 <div class="text-body2 q-mb-sm">Escrow ID: <code>{{ escrowId }}</code></div>
-                <q-btn
-                  color="secondary"
-                  label="View Escrow Details"
-                  @click="fetchEscrow"
-                  :loading="escrowLoading"
-                  icon="info"
-                  size="sm"
-                />
+                <q-btn color="secondary" label="View Escrow Details" @click="fetchEscrow" :loading="escrowLoading"
+                  icon="info" size="sm" />
               </q-card-section>
             </q-card>
           </div>
 
           <!-- Notarization Button -->
           <div v-if="fileHash && escrowLinked" class="q-mb-md">
-            <q-btn
-              color="primary"
-              size="lg"
-              label="🚀 Notarize Document on Blockchain"
-              @click="recordHash"
-              :disable="isRecording || ipfsUploading"
-              :loading="isRecording"
-              icon="verified"
-              class="full-width"
-            />
+            <q-btn color="primary" size="lg" label="🚀 Notarize Document on Blockchain" @click="recordHash"
+              :disable="isRecording || ipfsUploading" :loading="isRecording" icon="verified" class="full-width" />
             <div class="text-caption text-grey-7 q-mt-sm text-center">
               This will record the document hash on the Polygon blockchain
             </div>
@@ -172,14 +137,8 @@
                   <div class="text-subtitle2">🎉 NFT Receipt Minted!</div>
                 </div>
                 <div class="text-body2 q-mb-sm">Token ID: <b>{{ mintedTokenId }}</b></div>
-                <q-btn
-                  v-if="showViewGallery"
-                  color="purple"
-                  label="View in Gallery"
-                  @click="$router.push('/gallery')"
-                  icon="collections"
-                  class="q-mt-sm"
-                />
+                <q-btn v-if="showViewGallery" color="purple" label="View in Gallery" @click="$router.push('/gallery')"
+                  icon="collections" class="q-mt-sm" />
               </q-card-section>
             </q-card>
           </div>
@@ -200,14 +159,8 @@
       <q-card class="q-mb-lg">
         <q-card-section>
           <div class="text-h6 q-mb-md">🖼️ Optional: Upload Image for NFT</div>
-          <q-file
-            v-model="selectedImage"
-            label="Choose image for NFT"
-            outlined
-            accept="image/*"
-            @update:model-value="onImageChange"
-            class="q-mb-md"
-          >
+          <q-file v-model="selectedImage" label="Choose image for NFT" outlined accept="image/*"
+            @update:model-value="onImageChange" class="q-mb-md">
             <template v-slot:prepend>
               <q-icon name="image" />
             </template>
@@ -216,24 +169,14 @@
           <!-- Image Preview -->
           <div v-if="imagePreviewUrl" class="q-mb-md">
             <div class="text-subtitle2 q-mb-sm">Image Preview:</div>
-            <q-img
-              :src="imagePreviewUrl"
-              alt="Image Preview"
-              style="max-width: 200px; max-height: 200px;"
-              class="rounded-borders"
-            />
+            <q-img :src="imagePreviewUrl" alt="Image Preview" style="max-width: 200px; max-height: 200px;"
+              class="rounded-borders" />
           </div>
 
           <!-- IPFS Upload Progress -->
           <div v-if="ipfsUploading" class="q-mb-md">
             <div class="text-subtitle2 q-mb-sm">Uploading to IPFS...</div>
-            <q-linear-progress
-              :value="ipfsProgress / 100"
-              color="primary"
-              size="20px"
-              rounded
-              class="q-mb-sm"
-            >
+            <q-linear-progress :value="ipfsProgress / 100" color="primary" size="20px" rounded class="q-mb-sm">
               <div class="absolute-full flex flex-center text-white">
                 {{ ipfsProgress }}%
               </div>
@@ -255,14 +198,8 @@
       <q-card class="q-mb-lg">
         <q-card-section>
           <div class="text-h6 q-mb-md">🔍 Verify Document</div>
-          <q-file
-            v-model="verifyFile"
-            label="Choose document to verify"
-            outlined
-            accept="*/*"
-            @update:model-value="onVerifyFileChange"
-            class="q-mb-md"
-          >
+          <q-file v-model="verifyFile" label="Choose document to verify" outlined accept="*/*"
+            @update:model-value="onVerifyFileChange" class="q-mb-md">
             <template v-slot:prepend>
               <q-icon name="search" />
             </template>
@@ -270,32 +207,16 @@
 
           <div v-if="verifyFileHash" class="q-mb-md">
             <div class="text-subtitle2 q-mb-sm">Document Hash:</div>
-            <q-input
-              :model-value="verifyFileHash"
-              readonly
-              outlined
-              class="q-mb-sm"
-              bg-color="grey-1"
-            />
-            <q-btn
-              color="secondary"
-              label="Check On-Chain"
-              @click="verifyHash"
-              :disable="isVerifying"
-              :loading="isVerifying"
-              icon="verified"
-            />
+            <q-input :model-value="verifyFileHash" readonly outlined class="q-mb-sm" bg-color="grey-1" />
+            <q-btn color="secondary" label="Check On-Chain" @click="verifyHash" :disable="isVerifying"
+              :loading="isVerifying" icon="verified" />
           </div>
 
           <div v-if="verifyResult !== null" class="q-mt-md">
-            <q-banner
-              :class="verifyResult > 0 ? 'bg-green-2 text-positive' : 'bg-red-2 text-negative'"
-            >
+            <q-banner :class="verifyResult > 0 ? 'bg-green-2 text-positive' : 'bg-red-2 text-negative'">
               <template v-slot:avatar>
-                <q-icon
-                  :name="verifyResult > 0 ? 'check_circle' : 'cancel'"
-                  :color="verifyResult > 0 ? 'positive' : 'negative'"
-                />
+                <q-icon :name="verifyResult > 0 ? 'check_circle' : 'cancel'"
+                  :color="verifyResult > 0 ? 'positive' : 'negative'" />
               </template>
               <span v-if="verifyResult > 0">
                 ✅ Document was notarized at: {{ formatTimestamp(verifyResult) }}
@@ -321,14 +242,7 @@
           <div class="row items-center q-mb-md">
             <div class="text-h6">📚 Recently Notarized This Session</div>
             <q-space />
-            <q-btn
-              flat
-              dense
-              icon="delete"
-              color="negative"
-              @click="clearRecentDocs"
-              label="Clear"
-            />
+            <q-btn flat dense icon="delete" color="negative" @click="clearRecentDocs" label="Clear" />
           </div>
           <q-list bordered separator>
             <q-item v-for="doc in recentDocs" :key="doc.hash" clickable>
@@ -354,45 +268,24 @@
           <q-form @submit.prevent="onCreateEscrowForDoc" class="q-gutter-md">
             <div class="row q-col-gutter-md">
               <div class="col-12 col-md-6">
-                <q-input
-                  filled
-                  v-model="escrowPayee"
-                  label="Payee Address"
-                  :error="!!errors.payee"
-                  :error-message="errors.payee"
-                  placeholder="0x..."
-                >
+                <q-input filled v-model="escrowPayee" label="Payee Address" :error="!!errors.payee"
+                  :error-message="errors.payee" placeholder="0x...">
                   <template v-slot:prepend>
                     <q-icon name="account_circle" />
                   </template>
                 </q-input>
               </div>
               <div class="col-12 col-md-6">
-                <q-input
-                  filled
-                  v-model="escrowAmount"
-                  label="Amount (MATIC)"
-                  type="number"
-                  :error="!!errors.amount"
-                  :error-message="errors.amount"
-                  placeholder="0.01"
-                  step="0.001"
-                  min="0"
-                >
+                <q-input filled v-model="escrowAmount" label="Amount (MATIC)" type="number" :error="!!errors.amount"
+                  :error-message="errors.amount" placeholder="0.01" step="0.001" min="0">
                   <template v-slot:prepend>
                     <q-icon name="payments" />
                   </template>
                 </q-input>
               </div>
             </div>
-            <q-btn
-              color="primary"
-              label="Create Escrow"
-              type="submit"
-              :loading="escrowLoading || isSubmitting"
-              :disable="isSubmitting"
-              icon="account_balance_wallet"
-            />
+            <q-btn color="primary" label="Create Escrow" type="submit" :loading="escrowLoading || isSubmitting"
+              :disable="isSubmitting" icon="account_balance_wallet" />
           </q-form>
 
           <div v-if="escrowError" class="text-negative q-mt-sm">{{ escrowError }}</div>
@@ -401,15 +294,8 @@
             <q-card class="bg-blue-1">
               <q-card-section>
                 <div class="text-subtitle2 q-mb-sm">Escrow Created! ID: <b>{{ escrowId }}</b></div>
-                <q-btn
-                  color="secondary"
-                  label="Get Escrow Details"
-                  @click="fetchEscrow"
-                  :loading="escrowLoading"
-                  icon="info"
-                  size="sm"
-                  class="q-mr-sm"
-                />
+                <q-btn color="secondary" label="Get Escrow Details" @click="fetchEscrow" :loading="escrowLoading"
+                  icon="info" size="sm" class="q-mr-sm" />
               </q-card-section>
             </q-card>
 
@@ -443,29 +329,18 @@
                           <q-chip
                             :color="escrowDetails.isReleased ? 'positive' : escrowDetails.isRefunded ? 'negative' : 'warning'"
                             text-color="white"
-                            :label="escrowDetails.isReleased ? 'Released' : escrowDetails.isRefunded ? 'Refunded' : 'Pending'"
-                          />
+                            :label="escrowDetails.isReleased ? 'Released' : escrowDetails.isRefunded ? 'Refunded' : 'Pending'" />
                         </q-item-label>
                       </q-item-section>
                     </q-item>
                   </q-list>
 
                   <div class="q-mt-md">
-                    <q-btn
-                      color="positive"
-                      label="Release Escrow"
-                      @click="releaseEscrow"
-                      :disable="escrowDetails.isReleased || escrowDetails.isRefunded"
-                      icon="check_circle"
-                      class="q-mr-sm"
-                    />
-                    <q-btn
-                      color="negative"
-                      label="Refund Escrow"
-                      @click="refundEscrow"
-                      :disable="escrowDetails.isReleased || escrowDetails.isRefunded"
-                      icon="cancel"
-                    />
+                    <q-btn color="positive" label="Release Escrow" @click="releaseEscrow"
+                      :disable="escrowDetails.isReleased || escrowDetails.isRefunded" icon="check_circle"
+                      class="q-mr-sm" />
+                    <q-btn color="negative" label="Refund Escrow" @click="refundEscrow"
+                      :disable="escrowDetails.isReleased || escrowDetails.isRefunded" icon="cancel" />
                   </div>
                 </q-card-section>
               </q-card>
@@ -551,7 +426,9 @@ onMounted(() => {
   if (saved) {
     try {
       recentDocs.value = JSON.parse(saved);
-    } catch { }
+    } catch (e) {
+      // Ignore parsing errors
+    }
   }
 });
 
@@ -803,4 +680,3 @@ function onNftMinted(nftData: any) {
   }
 }
 </script>
-

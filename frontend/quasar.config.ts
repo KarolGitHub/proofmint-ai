@@ -79,6 +79,8 @@ export default (/* ctx */) => {
             eslint: {
               lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
               useFlatConfig: true,
+              // Disable ESLint when explicitly disabled
+              enableBuild: process.env.ESLINT_DISABLE !== '1',
             },
           },
           { server: false },
