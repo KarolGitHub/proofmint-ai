@@ -1,53 +1,76 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const ipfsService = require('../services/ipfsService');
-const { sendError } = require('../utils/errorResponse');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Configure multer for file uploads
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
-  },
-});
+/**
+ * @swagger
+ * tags:
+ *   name: IPFS Storage
+ *   description: Decentralized file storage and encryption
+ */
 
 /**
  * @swagger
  * /ipfs/upload:
  *   post:
- *     summary: Upload a file to IPFS (public)
+ *     tags: [IPFS Storage]
+ *     summary: Upload file to IPFS (public)
+ *     description: Upload a file to IPFS for public access
  *     requestBody:
  *       required: true
  *       content:
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - file
  *             properties:
  *               file:
  *                 type: string
  *                 format: binary
+ *                 description: File to upload
  *     responses:
  *       200:
  *         description: File uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cid:
+ *                   type: string
+ *                   description: IPFS Content Identifier
+ *                 url:
+ *                   type: string
+ *                   description: Accessible IPFS URL
+ *       400:
+ *         description: Bad request - file is required
+ *       500:
+ *         description: Server error
  */
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
-      return sendError(res, 400, 'No file uploaded');
+      return res.status(400).json({ error: 'No file provided' });
     }
 
-    const { buffer, originalname, mimetype } = req.file;
-    const result = await ipfsService.uploadToIPFS(
-      buffer,
-      originalname,
-      mimetype
+    const cid = await ipfsService.uploadToIPFS(
+      req.file.buffer,
+      req.file.originalname
     );
+    const url = `https://${cid}.ipfs.w3s.link/${req.file.originalname}`;
 
-    res.json(result);
+    res.json({
+      cid: cid,
+      url: url,
+      filename: req.file.originalname,
+      size: req.file.size,
+    });
   } catch (error) {
     console.error('IPFS upload error:', error);
-    sendError(res, 500, 'Failed to upload to IPFS', error.message);
+    res.status(500).json({ error: 'Failed to upload to IPFS' });
   }
 });
 
@@ -55,58 +78,71 @@ router.post('/upload', upload.single('file'), async (req, res) => {
  * @swagger
  * /ipfs/upload/encrypted:
  *   post:
- *     summary: Upload an encrypted file to IPFS
+ *     tags: [IPFS Storage]
+ *     summary: Upload encrypted file to IPFS
+ *     description: Upload a file to IPFS with AES-256-GCM encryption
  *     requestBody:
  *       required: true
  *       content:
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - file
+ *               - password
  *             properties:
  *               file:
  *                 type: string
  *                 format: binary
- *               encryptionKey:
+ *                 description: File to upload
+ *               password:
  *                 type: string
- *                 description: Optional encryption key in hex format
+ *                 description: Encryption password
  *     responses:
  *       200:
  *         description: Encrypted file uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cid:
+ *                   type: string
+ *                   description: IPFS Content Identifier
+ *                 encryptedUrl:
+ *                   type: string
+ *                   description: Accessible encrypted IPFS URL
+ *                 filename:
+ *                   type: string
+ *                   description: Original filename
+ *       400:
+ *         description: Bad request - file and password are required
+ *       500:
+ *         description: Server error
  */
 router.post('/upload/encrypted', upload.single('file'), async (req, res) => {
   try {
-    if (!req.file) {
-      return sendError(res, 400, 'No file uploaded');
+    if (!req.file || !req.body.password) {
+      return res.status(400).json({ error: 'File and password are required' });
     }
 
-    const { buffer, originalname, mimetype } = req.file;
-    const { encryptionKey } = req.body;
-
-    let key = null;
-    if (encryptionKey) {
-      try {
-        key = Buffer.from(encryptionKey, 'hex');
-      } catch (error) {
-        return sendError(res, 400, 'Invalid encryption key format');
-      }
-    }
-
-    const result = await ipfsService.uploadEncryptedToIPFS(
-      buffer,
-      originalname,
-      mimetype,
-      key
+    const cid = await ipfsService.uploadEncryptedToIPFS(
+      req.file.buffer,
+      req.file.originalname,
+      req.body.password
     );
+    const encryptedUrl = `https://${cid}.ipfs.w3s.link/${req.file.originalname}.encrypted`;
 
-    res.json(result);
+    res.json({
+      cid: cid,
+      encryptedUrl: encryptedUrl,
+      filename: req.file.originalname,
+      size: req.file.size,
+      encrypted: true,
+    });
   } catch (error) {
     console.error('Encrypted IPFS upload error:', error);
-    sendError(
-      res,
-      500,
-      'Failed to upload encrypted file to IPFS',
-      error.message
-    );
+    res.status(500).json({ error: 'Failed to upload encrypted file to IPFS' });
   }
 });
 
@@ -114,49 +150,50 @@ router.post('/upload/encrypted', upload.single('file'), async (req, res) => {
  * @swagger
  * /ipfs/download/{cid}:
  *   get:
- *     summary: Download a file from IPFS (public files)
+ *     tags: [IPFS Storage]
+ *     summary: Download file from IPFS
+ *     description: Download a file from IPFS using its CID
  *     parameters:
  *       - in: path
  *         name: cid
  *         required: true
  *         schema:
  *           type: string
- *         description: IPFS CID
+ *         description: IPFS Content Identifier
  *     responses:
  *       200:
  *         description: File downloaded successfully
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: File not found
+ *       500:
+ *         description: Server error
  */
 router.get('/download/:cid', async (req, res) => {
   try {
     const { cid } = req.params;
-
-    if (!cid) {
-      return sendError(res, 400, 'CID is required');
-    }
-
-    const result = await ipfsService.downloadFromIPFS(cid);
+    const fileData = await ipfsService.downloadFromIPFS(cid);
 
     res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="ipfs_${cid}"`);
-    res.send(result.data);
+    res.setHeader('Content-Disposition', `attachment; filename="${cid}"`);
+    res.send(fileData);
   } catch (error) {
     console.error('IPFS download error:', error);
-    sendError(res, 500, 'Failed to download from IPFS', error.message);
+    res.status(500).json({ error: 'Failed to download from IPFS' });
   }
 });
 
 /**
  * @swagger
- * /ipfs/download/encrypted/{cid}:
+ * /ipfs/download/decrypt:
  *   post:
- *     summary: Download and decrypt a file from IPFS
- *     parameters:
- *       - in: path
- *         name: cid
- *         required: true
- *         schema:
- *           type: string
- *         description: IPFS CID
+ *     tags: [IPFS Storage]
+ *     summary: Download and decrypt file from IPFS
+ *     description: Download an encrypted file from IPFS and decrypt it
  *     requestBody:
  *       required: true
  *       content:
@@ -164,50 +201,49 @@ router.get('/download/:cid', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - encryptionKey
+ *               - cid
+ *               - password
  *             properties:
- *               encryptionKey:
+ *               cid:
  *                 type: string
- *                 description: Encryption key in hex format
+ *                 description: IPFS Content Identifier
+ *               password:
+ *                 type: string
+ *                 description: Decryption password
  *     responses:
  *       200:
  *         description: File downloaded and decrypted successfully
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: Bad request - cid and password are required
+ *       500:
+ *         description: Server error
  */
-router.post('/download/encrypted/:cid', async (req, res) => {
+router.post('/download/decrypt', async (req, res) => {
   try {
-    const { cid } = req.params;
-    const { encryptionKey } = req.body;
-
-    if (!cid) {
-      return sendError(res, 400, 'CID is required');
+    const { cid, password } = req.body;
+    if (!cid || !password) {
+      return res.status(400).json({ error: 'CID and password are required' });
     }
 
-    if (!encryptionKey) {
-      return sendError(res, 400, 'Encryption key is required');
-    }
-
-    const result = await ipfsService.downloadAndDecryptFromIPFS(
+    const decryptedData = await ipfsService.downloadAndDecryptFromIPFS(
       cid,
-      encryptionKey
+      password
     );
 
-    res.setHeader(
-      'Content-Type',
-      result.contentType || 'application/octet-stream'
-    );
+    res.setHeader('Content-Type', 'application/octet-stream');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="${result.fileName}"`
+      `attachment; filename="decrypted_${cid}"`
     );
-    res.send(result.data);
+    res.send(decryptedData);
   } catch (error) {
-    console.error('IPFS download and decrypt error:', error);
-    sendError(
-      res,
-      500,
-      'Failed to download and decrypt from IPFS',
-      error.message
-    );
+    console.error('IPFS decrypt error:', error);
+    res.status(500).json({ error: 'Failed to decrypt file from IPFS' });
   }
 });
 
@@ -215,55 +251,46 @@ router.post('/download/encrypted/:cid', async (req, res) => {
  * @swagger
  * /ipfs/info/{cid}:
  *   get:
+ *     tags: [IPFS Storage]
  *     summary: Get file information from IPFS
+ *     description: Retrieve metadata and information about a file stored on IPFS
  *     parameters:
  *       - in: path
  *         name: cid
  *         required: true
  *         schema:
  *           type: string
- *         description: IPFS CID
+ *         description: IPFS Content Identifier
  *     responses:
  *       200:
  *         description: File information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cid:
+ *                   type: string
+ *                   description: IPFS Content Identifier
+ *                 size:
+ *                   type: number
+ *                   description: File size in bytes
+ *                 url:
+ *                   type: string
+ *                   description: Accessible IPFS URL
+ *       404:
+ *         description: File not found
+ *       500:
+ *         description: Server error
  */
 router.get('/info/:cid', async (req, res) => {
   try {
     const { cid } = req.params;
-
-    if (!cid) {
-      return sendError(res, 400, 'CID is required');
-    }
-
-    const result = await ipfsService.getFileInfo(cid);
-
-    res.json(result);
+    const fileInfo = await ipfsService.getFileInfo(cid);
+    res.json(fileInfo);
   } catch (error) {
-    console.error('IPFS file info error:', error);
-    sendError(res, 500, 'Failed to get file info from IPFS', error.message);
-  }
-});
-
-/**
- * @swagger
- * /ipfs/generate-key:
- *   post:
- *     summary: Generate a new encryption key
- *     responses:
- *       200:
- *         description: Encryption key generated successfully
- */
-router.post('/generate-key', (req, res) => {
-  try {
-    const key = ipfsService.generateEncryptionKey();
-    res.json({
-      success: true,
-      encryptionKey: key.toString('hex'),
-      keyLength: key.length * 8, // bits
-    });
-  } catch (error) {
-    console.error('Key generation error:', error);
-    sendError(res, 500, 'Failed to generate encryption key', error.message);
+    console.error('IPFS info error:', error);
+    res.status(500).json({ error: 'Failed to get file info from IPFS' });
   }
 });
 
