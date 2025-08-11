@@ -1,29 +1,39 @@
 const { ethers } = require('ethers');
-const crypto = require('crypto');
+require('dotenv').config();
+const { loadContractABI } = require('./contractLoader');
 
-// Import contract ABI and address
-const ZKProofVerifierABI =
-  require('../../contracts/artifacts/contracts/ZKProofVerifier.sol/ZKProofVerifier.json').abi;
 const ZK_PROOF_VERIFIER_ADDRESS = process.env.ZK_PROOF_VERIFIER_ADDRESS;
+const ZK_PROOF_VERIFIER_ABI = loadContractABI('ZKProofVerifier');
 
-// Initialize provider and contract only if address is provided
-let zkProofContract = null;
-if (ZK_PROOF_VERIFIER_ADDRESS) {
-  const provider = new ethers.providers.JsonRpcProvider(
-    process.env.POLYGON_MUMBAI_RPC_URL
-  );
-  zkProofContract = new ethers.Contract(
-    ZK_PROOF_VERIFIER_ADDRESS,
-    ZKProofVerifierABI,
-    provider
+// Initialize contract only if address and ABI are provided
+let zkProofVerifierContract = null;
+if (ZK_PROOF_VERIFIER_ADDRESS && ZK_PROOF_VERIFIER_ABI) {
+  try {
+    const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    zkProofVerifierContract = new ethers.Contract(
+      ZK_PROOF_VERIFIER_ADDRESS,
+      ZK_PROOF_VERIFIER_ABI,
+      wallet
+    );
+    console.log('✅ ZK Proof Verifier contract initialized');
+  } catch (error) {
+    console.error(
+      '❌ Failed to initialize ZK Proof Verifier contract:',
+      error.message
+    );
+  }
+} else {
+  console.warn(
+    '⚠️  ZK Proof Verifier contract not available - missing address or ABI'
   );
 }
 
 // Helper function to check if contract is initialized
 function checkContractInitialized() {
-  if (!zkProofContract) {
+  if (!zkProofVerifierContract) {
     throw new Error(
-      'ZK Proof contract not initialized. Please set ZK_PROOF_VERIFIER_ADDRESS environment variable.'
+      'ZK Proof contract not initialized. Please ensure ZK_PROOF_VERIFIER_ADDRESS environment variable is set and contract ABI is available.'
     );
   }
 }
@@ -55,7 +65,7 @@ function generateNullifier(documentHash, secret) {
  * @returns {string} Random salt
  */
 function generateSalt() {
-  return crypto.randomBytes(32).toString('hex');
+  return ethers.randomBytes(32).toString('hex');
 }
 
 /**
@@ -63,7 +73,7 @@ function generateSalt() {
  * @returns {string} Random secret
  */
 function generateSecret() {
-  return crypto.randomBytes(32).toString('hex');
+  return ethers.randomBytes(32).toString('hex');
 }
 
 /**
@@ -78,11 +88,9 @@ async function createZKProof(documentHash, salt, secret, privateKey) {
   checkContractInitialized();
 
   try {
-    const provider = new ethers.providers.JsonRpcProvider(
-      process.env.POLYGON_MUMBAI_RPC_URL
-    );
+    const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
     const wallet = new ethers.Wallet(privateKey, provider);
-    const contractWithSigner = zkProofContract.connect(wallet);
+    const contractWithSigner = zkProofVerifierContract.connect(wallet);
 
     const commitment = generateCommitment(documentHash, salt);
     const nullifier = generateNullifier(documentHash, secret);
@@ -139,11 +147,9 @@ async function verifyZKProof(proofId, proofData, privateKey) {
   checkContractInitialized();
 
   try {
-    const provider = new ethers.providers.JsonRpcProvider(
-      process.env.POLYGON_MUMBAI_RPC_URL
-    );
+    const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
     const wallet = new ethers.Wallet(privateKey, provider);
-    const contractWithSigner = zkProofContract.connect(wallet);
+    const contractWithSigner = zkProofVerifierContract.connect(wallet);
 
     // Get proof details
     const proof = await contractWithSigner.getProof(proofId);
@@ -190,11 +196,9 @@ async function revokeZKProof(proofId, privateKey) {
   checkContractInitialized();
 
   try {
-    const provider = new ethers.providers.JsonRpcProvider(
-      process.env.POLYGON_MUMBAI_RPC_URL
-    );
+    const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
     const wallet = new ethers.Wallet(privateKey, provider);
-    const contractWithSigner = zkProofContract.connect(wallet);
+    const contractWithSigner = zkProofVerifierContract.connect(wallet);
 
     // Get proof details to check ownership
     const proof = await contractWithSigner.getProof(proofId);
@@ -241,11 +245,9 @@ async function createVerificationRequest(proofId, reason, privateKey) {
   checkContractInitialized();
 
   try {
-    const provider = new ethers.providers.JsonRpcProvider(
-      process.env.POLYGON_MUMBAI_RPC_URL
-    );
+    const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
     const wallet = new ethers.Wallet(privateKey, provider);
-    const contractWithSigner = zkProofContract.connect(wallet);
+    const contractWithSigner = zkProofVerifierContract.connect(wallet);
 
     // Check if proof exists and is valid
     const proof = await contractWithSigner.getProof(proofId);
@@ -309,11 +311,9 @@ async function completeVerificationRequest(
   checkContractInitialized();
 
   try {
-    const provider = new ethers.providers.JsonRpcProvider(
-      process.env.POLYGON_MUMBAI_RPC_URL
-    );
+    const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
     const wallet = new ethers.Wallet(privateKey, provider);
-    const contractWithSigner = zkProofContract.connect(wallet);
+    const contractWithSigner = zkProofVerifierContract.connect(wallet);
 
     // Get request details
     const request = await contractWithSigner.getVerificationRequest(requestId);
@@ -367,11 +367,11 @@ async function getUserProofs(userAddress) {
   checkContractInitialized();
 
   try {
-    const proofIds = await zkProofContract.getUserProofs(userAddress);
+    const proofIds = await zkProofVerifierContract.getUserProofs(userAddress);
     const proofs = [];
 
     for (const proofId of proofIds) {
-      const proof = await zkProofContract.getProof(proofId);
+      const proof = await zkProofVerifierContract.getProof(proofId);
       proofs.push({
         proofId: proof.proofId.toString(),
         owner: proof.owner,
@@ -406,7 +406,7 @@ async function getProofDetails(proofId) {
   checkContractInitialized();
 
   try {
-    const proof = await zkProofContract.getProof(proofId);
+    const proof = await zkProofVerifierContract.getProof(proofId);
 
     if (proof.proofId.toString() === '0') {
       throw new Error('Proof does not exist');
@@ -442,7 +442,9 @@ async function getVerificationRequestDetails(requestId) {
   checkContractInitialized();
 
   try {
-    const request = await zkProofContract.getVerificationRequest(requestId);
+    const request = await zkProofVerifierContract.getVerificationRequest(
+      requestId
+    );
 
     if (request.requestId.toString() === '0') {
       throw new Error('Request does not exist');
@@ -476,7 +478,7 @@ async function getTotalProofs() {
   checkContractInitialized();
 
   try {
-    const count = await zkProofContract.getTotalProofs();
+    const count = await zkProofVerifierContract.getTotalProofs();
     return {
       success: true,
       count: count.toString(),

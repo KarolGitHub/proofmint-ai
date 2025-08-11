@@ -1,27 +1,39 @@
 const { ethers } = require('ethers');
 require('dotenv').config();
+const { loadContractABI } = require('./contractLoader');
 
 const REPUTATION_BADGE_ADDRESS = process.env.REPUTATION_BADGE_ADDRESS;
-const REPUTATION_BADGE_ABI =
-  require('../../contracts/artifacts/contracts/ReputationBadge.sol/ReputationBadge.json').abi;
+const REPUTATION_BADGE_ABI = loadContractABI('ReputationBadge');
 
-// Initialize contract only if address is provided
-let reputationContract = null;
-if (REPUTATION_BADGE_ADDRESS) {
-  const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
-  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-  reputationContract = new ethers.Contract(
-    REPUTATION_BADGE_ADDRESS,
-    REPUTATION_BADGE_ABI,
-    wallet
+// Initialize contract only if address and ABI are provided
+let reputationBadgeContract = null;
+if (REPUTATION_BADGE_ADDRESS && REPUTATION_BADGE_ABI) {
+  try {
+    const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    reputationBadgeContract = new ethers.Contract(
+      REPUTATION_BADGE_ADDRESS,
+      REPUTATION_BADGE_ABI,
+      wallet
+    );
+    console.log('✅ Reputation Badge contract initialized');
+  } catch (error) {
+    console.error(
+      '❌ Failed to initialize Reputation Badge contract:',
+      error.message
+    );
+  }
+} else {
+  console.warn(
+    '⚠️  Reputation Badge contract not available - missing address or ABI'
   );
 }
 
 // Helper function to check if contract is initialized
 function checkContractInitialized() {
-  if (!reputationContract) {
+  if (!reputationBadgeContract) {
     throw new Error(
-      'Reputation contract not initialized. Please set REPUTATION_BADGE_ADDRESS environment variable.'
+      'Reputation contract not initialized. Please ensure REPUTATION_BADGE_ADDRESS environment variable is set and contract ABI is available.'
     );
   }
 }
@@ -63,7 +75,7 @@ async function issueBadge(
   checkContractInitialized();
 
   try {
-    const tx = await reputationContract.issueBadge(
+    const tx = await reputationBadgeContract.issueBadge(
       recipient,
       badgeType,
       level,
@@ -76,7 +88,7 @@ async function issueBadge(
     const event = receipt.logs
       .map((log) => {
         try {
-          return reputationContract.interface.parseLog(log);
+          return reputationBadgeContract.interface.parseLog(log);
         } catch {
           return null;
         }
@@ -110,7 +122,7 @@ async function revokeBadge(tokenId) {
   checkContractInitialized();
 
   try {
-    const tx = await reputationContract.revokeBadge(tokenId);
+    const tx = await reputationBadgeContract.revokeBadge(tokenId);
     const receipt = await tx.wait();
 
     return {
@@ -134,7 +146,7 @@ async function updateReputation(user, newScore) {
   checkContractInitialized();
 
   try {
-    const tx = await reputationContract.updateReputation(user, newScore);
+    const tx = await reputationBadgeContract.updateReputation(user, newScore);
     const receipt = await tx.wait();
 
     return {
@@ -158,7 +170,7 @@ async function verifyKYC(user) {
   checkContractInitialized();
 
   try {
-    const tx = await reputationContract.verifyKYC(user);
+    const tx = await reputationBadgeContract.verifyKYC(user);
     const receipt = await tx.wait();
 
     return {
@@ -182,7 +194,7 @@ async function getReputationScore(user) {
   checkContractInitialized();
 
   try {
-    const score = await reputationContract.getReputationScore(user);
+    const score = await reputationBadgeContract.getReputationScore(user);
     return score.toString();
   } catch (error) {
     console.error('Get reputation score error:', error);
@@ -199,7 +211,7 @@ async function isKYCVerified(user) {
   checkContractInitialized();
 
   try {
-    const verified = await reputationContract.isKYCVerified(user);
+    const verified = await reputationBadgeContract.isKYCVerified(user);
     return verified;
   } catch (error) {
     console.error('KYC verification check error:', error);
@@ -216,7 +228,7 @@ async function getKYCVerifiedAt(user) {
   checkContractInitialized();
 
   try {
-    const timestamp = await reputationContract.getKYCVerifiedAt(user);
+    const timestamp = await reputationBadgeContract.getKYCVerifiedAt(user);
     return timestamp.toString();
   } catch (error) {
     console.error('Get KYC timestamp error:', error);
@@ -233,7 +245,7 @@ async function getUserBadges(user) {
   checkContractInitialized();
 
   try {
-    const badges = await reputationContract.getUserBadges(user);
+    const badges = await reputationBadgeContract.getUserBadges(user);
     return badges.map((id) => id.toString());
   } catch (error) {
     console.error('Get user badges error:', error);
@@ -250,7 +262,7 @@ async function getActiveBadges(user) {
   checkContractInitialized();
 
   try {
-    const badges = await reputationContract.getActiveBadges(user);
+    const badges = await reputationBadgeContract.getActiveBadges(user);
     return badges.map((id) => id.toString());
   } catch (error) {
     console.error('Get active badges error:', error);
@@ -268,7 +280,7 @@ async function hasBadge(user, badgeType) {
   checkContractInitialized();
 
   try {
-    const hasBadge = await reputationContract.hasBadge(user, badgeType);
+    const hasBadge = await reputationBadgeContract.hasBadge(user, badgeType);
     return hasBadge;
   } catch (error) {
     console.error('Check badge error:', error);
@@ -285,7 +297,7 @@ async function getBadge(tokenId) {
   checkContractInitialized();
 
   try {
-    const badge = await reputationContract.getBadge(tokenId);
+    const badge = await reputationBadgeContract.getBadge(tokenId);
     return {
       badgeType: badge.badgeType.toString(),
       level: badge.level.toString(),
@@ -309,7 +321,7 @@ async function isBadgeActive(tokenId) {
   checkContractInitialized();
 
   try {
-    const isActive = await reputationContract.isBadgeActive(tokenId);
+    const isActive = await reputationBadgeContract.isBadgeActive(tokenId);
     return isActive;
   } catch (error) {
     console.error('Check badge active error:', error);
@@ -326,7 +338,7 @@ async function getBadgeRequirements(badgeType) {
   checkContractInitialized();
 
   try {
-    const requirements = await reputationContract.getBadgeRequirements(
+    const requirements = await reputationBadgeContract.getBadgeRequirements(
       badgeType
     );
     return requirements.toString();

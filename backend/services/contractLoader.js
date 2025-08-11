@@ -51,6 +51,47 @@ const FALLBACK_ABIS = {
       },
     ],
   },
+  ReceiptNFT: {
+    abi: [
+      {
+        inputs: [
+          {
+            internalType: 'address',
+            name: 'to',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'tokenId',
+            type: 'uint256',
+          },
+        ],
+        name: 'mint',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+      },
+      {
+        inputs: [
+          {
+            internalType: 'uint256',
+            name: 'tokenId',
+            type: 'uint256',
+          },
+        ],
+        name: 'tokenURI',
+        outputs: [
+          {
+            internalType: 'string',
+            name: '',
+            type: 'string',
+          },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+      },
+    ],
+  },
   ReputationBadge: {
     abi: [
       {
@@ -108,7 +149,7 @@ function loadContractABI(contractName) {
     // First try to load from artifacts
     const artifactPath = require('path').join(
       __dirname,
-      `../../contracts/artifacts/contracts/${contractName}.sol/${contractName}.json`
+      `../contracts/artifacts/contracts/${contractName}.sol/${contractName}.json`
     );
     const fs = require('fs');
 
@@ -153,6 +194,7 @@ function getContractStatus() {
   const contracts = [
     'Notary',
     'PaymentEscrow',
+    'ReceiptNFT',
     'ReputationBadge',
     'ZKProofVerifier',
   ];

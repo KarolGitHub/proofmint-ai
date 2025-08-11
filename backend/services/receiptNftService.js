@@ -1,20 +1,32 @@
 const { ethers } = require('ethers');
 require('dotenv').config();
 const { create } = require('@web3-storage/w3up-client');
+const { loadContractABI } = require('./contractLoader');
 
 const RECEIPT_NFT_ADDRESS = process.env.RECEIPT_NFT_ADDRESS;
-const RECEIPT_NFT_ABI =
-  require('../../contracts/artifacts/contracts/ReceiptNFT.sol/ReceiptNFT.json').abi;
+const RECEIPT_NFT_ABI = loadContractABI('ReceiptNFT');
 
-// Initialize contract only if address is provided
+// Initialize contract only if address and ABI are provided
 let receiptNftContract = null;
-if (RECEIPT_NFT_ADDRESS) {
-  const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
-  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-  receiptNftContract = new ethers.Contract(
-    RECEIPT_NFT_ADDRESS,
-    RECEIPT_NFT_ABI,
-    wallet
+if (RECEIPT_NFT_ADDRESS && RECEIPT_NFT_ABI) {
+  try {
+    const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    receiptNftContract = new ethers.Contract(
+      RECEIPT_NFT_ADDRESS,
+      RECEIPT_NFT_ABI,
+      wallet
+    );
+    console.log('✅ Receipt NFT contract initialized');
+  } catch (error) {
+    console.error(
+      '❌ Failed to initialize Receipt NFT contract:',
+      error.message
+    );
+  }
+} else {
+  console.warn(
+    '⚠️  Receipt NFT contract not available - missing address or ABI'
   );
 }
 
@@ -25,7 +37,7 @@ const W3UP_SPACE_DID = process.env.W3UP_SPACE_DID;
 function checkContractInitialized() {
   if (!receiptNftContract) {
     throw new Error(
-      'Receipt NFT contract not initialized. Please set RECEIPT_NFT_ADDRESS environment variable.'
+      'Receipt NFT contract not initialized. Please ensure RECEIPT_NFT_ADDRESS environment variable is set and contract ABI is available.'
     );
   }
 }
