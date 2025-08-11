@@ -5,7 +5,9 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "build": "echo 'Backend build complete - no compilation needed'",
+    "postinstall": "echo 'Backend dependencies installed successfully'"
   },
   "keywords": [],
   "author": "",

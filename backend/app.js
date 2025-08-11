@@ -21,6 +21,9 @@ const {
   testEventListener,
 } = require('./services/notaryListener');
 
+// Import contract loader for status
+const { getContractStatus } = require('./services/contractLoader');
+
 const app = express();
 
 // Middleware
@@ -125,6 +128,7 @@ app.get('/health', async (req, res) => {
   try {
     const listenerStatus = getListenerStatus();
     const providerStatus = await testProviderConnection();
+    const contractStatus = getContractStatus();
 
     res.json({
       status: 'healthy',
@@ -141,6 +145,7 @@ app.get('/health', async (req, res) => {
         rpcUrl: process.env.AMOY_RPC_URL ? 'configured' : 'not configured',
         privateKey: process.env.PRIVATE_KEY ? 'configured' : 'not configured',
       },
+      contracts: contractStatus,
     });
   } catch (error) {
     res.status(500).json({
@@ -373,5 +378,20 @@ app.use(
 const PORT = process.env.PORT || process.env.BACKEND_PORT || 3001;
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📊 Health check available at: http://localhost:${PORT}/health`);
+  console.log(`📚 API documentation available at: http://localhost:${PORT}/`);
+
+  // Show contract status
+  try {
+    const contractStatus = getContractStatus();
+    console.log('📋 Contract Status:');
+    Object.entries(contractStatus).forEach(([contract, status]) => {
+      const icon = status.available ? '✅' : '❌';
+      const source = status.source || 'none';
+      console.log(`  ${icon} ${contract}: ${source}`);
+    });
+  } catch (error) {
+    console.log('⚠️  Could not determine contract status');
+  }
 });

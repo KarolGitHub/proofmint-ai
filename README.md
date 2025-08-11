@@ -195,6 +195,8 @@ The documentation includes:
 
 🔮 Roadmap
 
+## Phase 1: Core Features ✅ COMPLETED
+
 - [x] AI document analysis
 - [x] Document hashing & on-chain notarization
 - [x] Wallet payment (MATIC or token escrow)
@@ -205,6 +207,55 @@ The documentation includes:
 - [x] ZK-proof anonymized verification
 - [x] Mobile/Desktop builds via Quasar
 - [x] UI Preview functionalities (enhanced upload+processing, wallet pay button + NFT receipt badge, notary proof explorer dashboard)
+
+## Phase 2: Advanced Features 🚀 IN PROGRESS
+
+- [ ] AI-Powered Document Insights Dashboard
+  - [ ] Smart document analytics & pattern recognition
+  - [ ] AI confidence scoring & trend analysis
+  - [ ] Predictive suggestions & next-action recommendations
+- [ ] Advanced Security & Compliance
+  - [ ] Multi-factor authentication (SMS, email, authenticator)
+  - [ ] Role-based access control & permission management
+  - [ ] Complete audit trails & GDPR compliance tools
+  - [ ] End-to-end encryption & client-side security
+- [ ] Social & Collaboration Features
+  - [ ] Document sharing & team workspaces
+  - [ ] AI-powered comment & annotation system
+  - [ ] Version control & real-time collaboration
+  - [ ] Document workflow automation
+- [ ] Advanced Analytics & Reporting
+  - [ ] Custom report builder with drag-and-drop interface
+  - [ ] Data visualization & business intelligence dashboards
+  - [ ] Scheduled reports & export capabilities (PDF, Excel, CSV)
+  - [ ] KPI tracking & performance metrics
+- [ ] Integration Ecosystem
+  - [ ] Webhook system & real-time notifications
+  - [ ] API rate limiting & professional management
+  - [ ] Third-party integrations (Google Drive, Dropbox, Slack)
+  - [ ] Zapier/IFTTT support & custom webhook builder
+- [ ] Enhanced User Experience
+  - [ ] Dark/light theme system & customizable dashboards
+  - [ ] Keyboard shortcuts & progressive web app features
+  - [ ] Offline mode & advanced productivity tools
+- [ ] Advanced AI Capabilities
+  - [ ] Multi-language support (50+ languages)
+  - [ ] Custom AI model training & batch processing
+  - [ ] AI model comparison & continuous learning
+  - [ ] Industry-specific document analysis
+- [ ] Monetization & Business Features
+  - [ ] Subscription plans & usage analytics
+  - [ ] Payment integration (Stripe, PayPal, crypto)
+  - [ ] Affiliate system & white-label solutions
+  - [ ] Enterprise features & custom branding
+
+## Phase 3: Enterprise & Scale 🏢 PLANNED
+
+- [ ] Multi-tenant architecture
+- [ ] Advanced compliance (SOC2, ISO27001)
+- [ ] Global CDN & edge computing
+- [ ] Machine learning model serving
+- [ ] Advanced blockchain features (Layer 2, cross-chain)
 
 ---
 

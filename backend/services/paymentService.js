@@ -1,20 +1,32 @@
 const { ethers } = require('ethers');
 require('dotenv').config();
 const { registerEscrow } = require('./notaryListener');
+const { loadContractABI } = require('./contractLoader');
 
 const PAYMENT_ESCROW_ADDRESS = process.env.PAYMENT_ESCROW_ADDRESS;
-const PAYMENT_ESCROW_ABI =
-  require('../../contracts/artifacts/contracts/PaymentEscrow.sol/PaymentEscrow.json').abi;
+const PAYMENT_ESCROW_ABI = loadContractABI('PaymentEscrow');
 
-// Initialize contract only if address is provided
+// Initialize contract only if address and ABI are provided
 let escrowContract = null;
-if (PAYMENT_ESCROW_ADDRESS) {
-  const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
-  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-  escrowContract = new ethers.Contract(
-    PAYMENT_ESCROW_ADDRESS,
-    PAYMENT_ESCROW_ABI,
-    wallet
+if (PAYMENT_ESCROW_ADDRESS && PAYMENT_ESCROW_ABI) {
+  try {
+    const provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    escrowContract = new ethers.Contract(
+      PAYMENT_ESCROW_ADDRESS,
+      PAYMENT_ESCROW_ABI,
+      wallet
+    );
+    console.log('✅ Payment escrow contract initialized');
+  } catch (error) {
+    console.error(
+      '❌ Failed to initialize payment escrow contract:',
+      error.message
+    );
+  }
+} else {
+  console.warn(
+    '⚠️  Payment escrow contract not available - missing address or ABI'
   );
 }
 
@@ -22,7 +34,7 @@ if (PAYMENT_ESCROW_ADDRESS) {
 function checkContractInitialized() {
   if (!escrowContract) {
     throw new Error(
-      'Payment escrow contract not initialized. Please set PAYMENT_ESCROW_ADDRESS environment variable.'
+      'Payment escrow contract not initialized. Please ensure PAYMENT_ESCROW_ADDRESS environment variable is set and contract ABI is available.'
     );
   }
 }

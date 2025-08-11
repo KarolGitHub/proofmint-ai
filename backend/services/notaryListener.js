@@ -1,16 +1,29 @@
 const { ethers } = require('ethers');
 const fs = require('fs');
 const path = require('path');
+const { loadContractABI, areContractsAvailable } = require('./contractLoader');
 require('dotenv').config();
 
 const NOTARY_ADDRESS = process.env.NOTARY_CONTRACT_ADDRESS;
-const NOTARY_ABI =
-  require('../../contracts/artifacts/contracts/Notary.sol/Notary.json').abi;
 const PAYMENT_ESCROW_ADDRESS = process.env.PAYMENT_ESCROW_ADDRESS;
-const PAYMENT_ESCROW_ABI =
-  require('../../contracts/artifacts/contracts/PaymentEscrow.sol/PaymentEscrow.json').abi;
 
-// Initialize contracts only if addresses are provided
+// Load contract ABIs safely
+const NOTARY_ABI = loadContractABI('Notary');
+const PAYMENT_ESCROW_ABI = loadContractABI('PaymentEscrow');
+
+// Check if we have the required contract ABIs
+const contractsAvailable = areContractsAvailable();
+
+if (!contractsAvailable) {
+  console.warn(
+    '⚠️  Contract ABIs not available. Blockchain features will be disabled.'
+  );
+  console.warn(
+    'To enable blockchain features, ensure contracts are compiled and artifacts are available.'
+  );
+}
+
+// Initialize contracts only if addresses and ABIs are provided
 let notary = null;
 let escrow = null;
 let provider = null;
@@ -70,6 +83,12 @@ function registerEscrow(documentHash, escrowId) {
 
 // Initialize contracts and provider
 function initializeContracts() {
+  // Check if contracts are available
+  if (!contractsAvailable) {
+    console.log('Contract ABIs not available, blockchain features disabled');
+    return false;
+  }
+
   if (!NOTARY_ADDRESS || !PAYMENT_ESCROW_ADDRESS) {
     console.log('Contract addresses not provided, skipping initialization');
     console.log('Required environment variables:');
@@ -103,12 +122,17 @@ function initializeContracts() {
     provider = new ethers.JsonRpcProvider(process.env.AMOY_RPC_URL);
     wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
-    notary = new ethers.Contract(NOTARY_ADDRESS, NOTARY_ABI, provider);
-    escrow = new ethers.Contract(
-      PAYMENT_ESCROW_ADDRESS,
-      PAYMENT_ESCROW_ABI,
-      wallet
-    );
+    // Only create contract instances if ABIs are available
+    if (NOTARY_ABI) {
+      notary = new ethers.Contract(NOTARY_ADDRESS, NOTARY_ABI, provider);
+    }
+    if (PAYMENT_ESCROW_ABI) {
+      escrow = new ethers.Contract(
+        PAYMENT_ESCROW_ADDRESS,
+        PAYMENT_ESCROW_ABI,
+        wallet
+      );
+    }
 
     console.log('Contracts initialized successfully');
     return true;
@@ -122,6 +146,11 @@ function initializeContracts() {
 function setupEventListener() {
   if (!notary || !escrow) {
     console.log('Contracts not initialized, cannot setup event listener');
+    return false;
+  }
+
+  if (!contractsAvailable) {
+    console.log('Contract ABIs not available, event listener disabled');
     return false;
   }
 
