@@ -13,6 +13,9 @@ const paymentRoutes = require('./routes/payment');
 const reputationRoutes = require('./routes/reputation');
 const zkProofRoutes = require('./routes/zkproof');
 
+// Import notary listener for health check
+const { getListenerStatus, reconnect } = require('./services/notaryListener');
+
 const app = express();
 
 // Middleware
@@ -49,6 +52,53 @@ app.use('/zkproof', zkProofRoutes);
 // Root endpoint
 app.get('/', (req, res) => {
   res.send('ProofMintAI Backend is running!');
+});
+
+// Health check endpoint for event listener
+app.get('/health', (req, res) => {
+  try {
+    const listenerStatus = getListenerStatus();
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      eventListener: listenerStatus,
+      environment: {
+        notaryAddress: process.env.NOTARY_CONTRACT_ADDRESS
+          ? 'configured'
+          : 'not configured',
+        escrowAddress: process.env.PAYMENT_ESCROW_ADDRESS
+          ? 'configured'
+          : 'not configured',
+        rpcUrl: process.env.AMOY_RPC_URL ? 'configured' : 'not configured',
+        privateKey: process.env.PRIVATE_KEY ? 'configured' : 'not configured',
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
+});
+
+// Manual reconnection endpoint for debugging
+app.post('/reconnect', (req, res) => {
+  try {
+    console.log('Manual reconnection requested via API');
+    reconnect();
+    res.json({
+      status: 'reconnecting',
+      timestamp: new Date().toISOString(),
+      message: 'Event listener reconnection initiated',
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
 });
 
 const swaggerDefinition = {
