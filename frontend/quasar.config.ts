@@ -3,6 +3,7 @@
 
 import { fileURLToPath, URL } from 'node:url';
 import type { UserConfig } from 'vite';
+import { existsSync } from 'node:fs';
 
 export default (/* ctx */) => {
   return {
@@ -79,8 +80,6 @@ export default (/* ctx */) => {
             eslint: {
               lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
               useFlatConfig: true,
-              // Disable ESLint when explicitly disabled
-              enableBuild: process.env.ESLINT_DISABLE !== '1',
             },
           },
           { server: false },

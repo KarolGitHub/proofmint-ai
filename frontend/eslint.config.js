@@ -1,14 +1,16 @@
 import js from '@eslint/js';
 import globals from 'globals';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsparser from '@typescript-eslint/parser';
+import vue from 'eslint-plugin-vue';
+import vueParser from 'vue-eslint-parser';
 
-// SIMPLE ESLINT CONFIG - Only rules that actually exist
 export default [
   // Base JavaScript config
   js.configs.recommended,
 
-  // Global config for all files
+  // Global settings
   {
-    files: ['**/*.{js,ts,vue}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -18,18 +20,70 @@ export default [
         process: 'readonly',
       },
     },
+  },
+
+  // JavaScript files
+  {
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+    languageOptions: {
+      parser: js.parser,
+    },
     rules: {
-      // Only rules that actually exist in @eslint/js
       'no-unused-vars': 'warn',
       'no-console': 'warn',
       'no-debugger': 'warn',
+      'no-case-declarations': 'warn',
+      'no-dupe-keys': 'warn',
+      'no-undef': 'warn',
+    },
+  },
 
-      // Everything else is off
-      'no-empty': 'off',
-      'prefer-promise-reject-errors': 'off',
-      'no-restricted-globals': 'off',
-      'no-restricted-syntax': 'off',
-      'no-restricted-properties': 'off',
+  // TypeScript files
+  {
+    files: ['**/*.ts'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      'no-unused-vars': 'off', // Turn off base rule
+      'no-console': 'warn',
+      'no-debugger': 'warn',
+      'no-case-declarations': 'warn',
+      'no-dupe-keys': 'warn',
+      'no-undef': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+
+  // Vue files
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      parser: vueParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        parser: tsparser,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      'no-console': 'warn',
+      'no-debugger': 'warn',
+      'no-case-declarations': 'warn',
+      'no-dupe-keys': 'warn',
+      'no-undef': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
 ];
